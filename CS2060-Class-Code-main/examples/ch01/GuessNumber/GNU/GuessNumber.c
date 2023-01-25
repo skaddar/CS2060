@@ -9,6 +9,7 @@ int isCorrect(int, int); // function prototype
 int main(void)
 {
    // srand( time( 0 ) ); // seed random number generator
+   //srand( time( 0 ) ); // seed random number generator
     //update with your name
     puts("Hello Soliman");
    guessGame();
@@ -33,11 +34,14 @@ void guessGame(void)
       puts("I have a number between 1 and 1000.\n" 
            "Can you guess my number?\n" 
            "Please type your first guess.");
+      //Why format this instead of "puts"?
       printf("%s", "? ");
+
+      //I think this might be like the scanner object 
       scanf("%d", &guess);
 
       // loop until correct number
-      while (!isCorrect(guess, answer)) 
+      while (!isCorrect(guess, answer))
          scanf("%d", &guess);
 
       // prompt for another game
