@@ -8,7 +8,6 @@ int isCorrect(int, int); // function prototype
 
 int main(void)
 {
-   // srand( time( 0 ) ); // seed random number generator
    //srand( time( 0 ) ); // seed random number generator
     //update with your name
     puts("Hello Soliman");
