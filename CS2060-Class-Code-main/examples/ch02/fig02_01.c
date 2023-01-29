@@ -1,11 +1,25 @@
 // Fig. 2.1: fig02_01.c
 // A first program in C 
-#include <stdio.h>
+#include <stdio.h>;
 
 // function main begins program execution 
 int main( void )
 {
    printf( "Welcome to C!\n" );
+   int x = 1;
+   int total = 0;
+   int y;
+
+   while (x <= 10) {
+	   y = x * x;
+	   printf("%d\n", y);
+	   total += y;
+	   ++x;
+
+   } // end while
+
+   printf("Total is %d\n", total);
+
 } // end function main 
 
 
@@ -23,3 +37,4 @@ int main( void )
  * consequential damages in connection with, or arising out of, the       *
  * furnishing, performance, or use of these programs.                     *
  *************************************************************************/
+
