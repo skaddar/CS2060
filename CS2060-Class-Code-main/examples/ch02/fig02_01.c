@@ -1,24 +1,34 @@
 // Fig. 2.1: fig02_01.c
 // A first program in C 
-#include <stdio.h>;
+#include <stdio.h>
+
 
 // function main begins program execution 
 int main( void )
 {
-   printf( "Welcome to C!\n" );
-   int x = 1;
-   int total = 0;
-   int y;
+	unsigned int length = 0;
+	unsigned int width = 0;
+	unsigned int area = 0;
 
-   while (x <= 10) {
-	   y = x * x;
-	   printf("%d\n", y);
-	   total += y;
-	   ++x;
+	puts("enter length:");
+	
+	scanf("%d", &length);
 
-   } // end while
+	puts("enter width: ");
+	scanf("%d", &width);
 
-   printf("Total is %d\n", total);
+	printf("%s %d \n", "the length is:", length);
+	printf("%s %d \n", "the width is:", width);
+
+	puts("----------------------------------------------------");
+
+	area = length * width;
+	printf("%s %d, %s %d, %s %d \n", "length:", length, "Width:", width, "and the area is", area);
+
+	double average = ((double)length + (double) width)/0;
+	printf("%s %.1f \n", "the average is:", average);
+
+  
 
 } // end function main 
 
