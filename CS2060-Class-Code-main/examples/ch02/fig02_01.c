@@ -1,5 +1,17 @@
 // Fig. 2.1: fig02_01.c
 // A first program in C 
+/*
+
+Name: Soliman Kaddar
+Assignment: Homework 1
+Class: CS2060 (M/W 10:40 - 12:05)
+DueDate: 30 January 2023
+
+Description: practice with C a basic input and output stream with length and width
+then calculating average and area.
+
+
+*/
 #include <stdio.h>
 
 
@@ -25,7 +37,7 @@ int main( void )
 	area = length * width;
 	printf("%s %d, %s %d, %s %d \n", "length:", length, "Width:", width, "and the area is", area);
 
-	double average = ((double)length + (double) width)/0;
+	double average = ((double)length + (double) width)/2;
 	printf("%s %.1f \n", "the average is:", average);
 
   
