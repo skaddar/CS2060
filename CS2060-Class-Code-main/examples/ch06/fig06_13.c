@@ -3,9 +3,12 @@
 #include <stdio.h>
 #define SIZE 5
 
+
 // function prototypes
 void modifyArray(int b[], size_t size);
-void modifyElement(int e);               
+void modifyElement(int e);  
+void printingArray(const int[], size_t);
+void printingMultiArray(const int[][3], int);
 
 // function main begins program execution
 int main(void)
@@ -38,12 +41,34 @@ int main(void)
 
    // output value of a[3]
    printf("The value of a[3] is %d\n", a[3]);
+
+   puts("The first index address:");
+   printf("%p", &a[0]);
+   puts("");
+   puts("The array address:");
+   printf("%p", &a);
+   puts("");
+   puts("");
+
+   puts("Print the array:");
+   size_t sizeOfArray = SIZE;
+   printingArray(a , sizeOfArray);
+
+  
+   //only entering comletely random number just for the example
+   int multiArray[2][3] = {
+    {420, 420, 420},
+    {420, 420, 420},
+   };
+   puts("");
+   puts("Print the multiDemensional array:");
+   printingMultiArray(multiArray, 2);
 }
 
 // in function modifyArray, "b" points to the original array "a" 
 // in memory                                                     
 void modifyArray(int b[], size_t size)                               
-{                                                                   
+{                                                                  
    // multiply each array element by 2                         
    for (size_t j = 0; j < size; ++j) {                                 
       b[j] *= 2; // actually modifies original array               
@@ -57,8 +82,20 @@ void modifyElement(int e)
    // multiply parameter by 2                                  
    printf("Value in modifyElement is %d\n", e *= 2);            
 } 
-                          
-
+void printingArray(const int array[], size_t sizeOfArray) {
+    for (size_t i = 0; i < sizeOfArray; i++) {
+        printf("%d ", array[i]);
+    }
+    puts("");
+}
+void printingMultiArray(const int array[][3], int numOfRows) {
+    for (int i = 0; i < numOfRows; i++) {
+        for (int j = 0; j < 2; j++) {
+            printf("%d ", array[i][j]);
+        }
+        puts("");
+    }
+}
 
 
 
