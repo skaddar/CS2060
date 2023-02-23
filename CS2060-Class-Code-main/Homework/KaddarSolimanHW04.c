@@ -15,10 +15,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-double getValidHours();
-void printCategoriesWeights();
-
-
 #define STUDENTS 4
 #define GRADE_CATEGORIES 5
 #define CATEGORIES "1. Learning Activity 2. Homework 3. Project 4. Midterm 5. Final "
@@ -26,8 +22,13 @@ const double GRADE_CATEGORY_WEIGHT[] = { 0.1, 0.3, 0.3, 0.15, .15 };
 const int MAXIMUM_GRADE = 105;
 const int MINIMUM_GRADE = 0;
 
+double getValidGrade();
+void printCategoriesWeights();
+void addStudentGrades(double[][GRADE_CATEGORIES]);
+
 int main(void)
 {
+	double studentGrades[STUDENTS][GRADE_CATEGORIES];
 
 	puts("This program will calculate the grades for these categories");
 	printf("%s", CATEGORIES);
@@ -35,8 +36,8 @@ int main(void)
 	//category weights array is a global constant meaning it wont need to be passed to 
 	//the function.
 	printCategoriesWeights();
-
-	double studentGrades[STUDENTS][GRADE_CATEGORIES];
+	addStudentGrades(studentGrades);
+	
 	
 }
 
@@ -52,9 +53,20 @@ void printCategoriesWeights()
 
 void addStudentGrades(double studentGrades[][GRADE_CATEGORIES])
 {
+	printf("%s%s\n\n", "The correct order to enter grades for each student is:\n", CATEGORIES);
+	for (int i = 0; i < STUDENTS; i++)
+	{
+		for (int j = 0; j < GRADE_CATEGORIES; j++)
+		{
+			printf("%s%i%s%i%s", "Enter the grade for each category for student", i+1, "category ", j+1,":");
+			double categoryGrade = getValidGrade();
+			studentGrades[i][j] = categoryGrade;
+			printf("%lf\n", categoryGrade);
+		}
+	}
 }
 
-double getValidHours()
+double getValidGrade()
 {
 	double gradeInput = 0;
 	int scannedVariable = 0;
@@ -63,7 +75,7 @@ double getValidHours()
 	//repeat until valid grades are entered
 	do
 	{
-		printf("%s%i%s%i%s", "Please enter a valid grade between",MINIMUM_GRADE,"-", MAXIMUM_GRADE, "\n");
+		
 		//prompt for input and store in gradeInput variable.
 		//The return of scanf will be stored in Scanned variable to check for invalid input
 		scannedVariable = scanf("%lf", &gradeInput);
