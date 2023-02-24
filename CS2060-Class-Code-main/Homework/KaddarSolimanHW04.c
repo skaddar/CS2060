@@ -25,10 +25,16 @@ const int MINIMUM_GRADE = 0;
 double getValidGrade();
 void printCategoriesWeights();
 void addStudentGrades(double[][GRADE_CATEGORIES]);
+void displayStudentsGrades(const double[][GRADE_CATEGORIES]);
+void calculateFinalGrades(double[], const double[][GRADE_CATEGORIES]);
+void displayFinalGrades(const double[]);
+void calculateAverage(const double[]);
+
 
 int main(void)
 {
 	double studentGrades[STUDENTS][GRADE_CATEGORIES];
+	double studentFinalGrades[STUDENTS];
 
 	puts("This program will calculate the grades for these categories");
 	printf("%s", CATEGORIES);
@@ -37,8 +43,10 @@ int main(void)
 	//the function.
 	printCategoriesWeights();
 	addStudentGrades(studentGrades);
-	
-	
+	displayStudentsGrades(studentGrades);
+	calculateFinalGrades(studentFinalGrades, studentGrades);
+	displayFinalGrades(studentFinalGrades);
+	calculateAverage(studentFinalGrades);
 }
 
 void printCategoriesWeights()
@@ -58,11 +66,11 @@ void addStudentGrades(double studentGrades[][GRADE_CATEGORIES])
 	{
 		for (int j = 0; j < GRADE_CATEGORIES; j++)
 		{
-			printf("%s%i%s%i%s", "Enter the grade for each category for student", i+1, "category ", j+1,":");
+			printf("%s%i%s%i%s", "Enter the grade for each category for student ", i+1, " category ", j+1,":");
 			double categoryGrade = getValidGrade();
 			studentGrades[i][j] = categoryGrade;
-			printf("%lf\n", categoryGrade);
 		}
+		puts("");
 	}
 }
 
@@ -105,3 +113,78 @@ double getValidGrade()
 	return gradeInput;
 
 }//getValidInput
+
+void displayStudentsGrades(const double studentGrades[][GRADE_CATEGORIES])
+{
+	puts("Grades for each student\n");
+	for (int i = 0; i < STUDENTS; i++)
+	{
+		printf("%s%i%s", "Student ", i+1, ": ");
+		for (int j = 0; j < GRADE_CATEGORIES; j++)
+		{
+			printf("	%.2lf", studentGrades[i][j]);
+		}
+		puts("");
+	}
+}
+
+//this method will calculate the final grades for each student and add them to an array
+//the 2D array will be passed as a constant because the function will not need to modify it just 
+//get the values in it.
+//It will store the averages calculated from the 2D array in the 1D array
+void calculateFinalGrades(double finalGrades[], const double studentGrades[][GRADE_CATEGORIES])
+{
+	//Multiply each category by the category weight constant.
+	//then add all of them together for each category and thats the final grade
+	//Add that to the array
+	for (int i = 0; i < STUDENTS; i++)
+	{
+		double categoryGrade = 0;
+		double finalGrade = 0;
+		for (int j = 0; j < GRADE_CATEGORIES; j++)
+		{
+			categoryGrade = studentGrades[i][j] * GRADE_CATEGORY_WEIGHT[j];
+			finalGrade = finalGrade + categoryGrade;
+		}
+		finalGrades[i] = finalGrade;
+	}
+}
+
+void displayFinalGrades(const double finalGrades[])
+{
+	puts("Final grades for students, respectively:");
+	for (int i = 0; i < STUDENTS; i++) 
+	{
+		if (finalGrades[i]>=90)
+		{
+			printf("%s%i%s	%.2lf%s\n", "Student ", i+1, " :", finalGrades[i], "	A");
+		}
+		else if (finalGrades[i] >= 80 && finalGrades[i] < 90)
+		{
+			printf("%s%i%s	%.2lf%s\n", "Student ", i + 1, " :", finalGrades[i], "	B");
+		}
+		else if (finalGrades[i] >= 70 && finalGrades[i] < 80)
+		{
+			printf("%s%i%s	%.2lf%s\n", "Student ", i + 1, " :", finalGrades[i], "	C");
+		}
+		else if (finalGrades[i] >= 60 && finalGrades[i] < 70)
+		{
+			printf("%s%i%s	%.2lf%s\n", "Student ", i + 1, " :", finalGrades[i], "	D");
+		}
+		else if (finalGrades[i] <60)
+		{
+			printf("%s%i%s	%.2lf%s\n", "Student ", i + 1, " :", finalGrades[i], "	F");
+		}
+	}
+}
+
+void calculateAverage(const double finalGrades[])
+{
+	double sum = 0;
+	for(int i = 0; i < STUDENTS; i++)
+	{
+		sum = sum + finalGrades[i];
+	}
+	double average = sum / STUDENTS;
+	printf("%s%.2lf", "The class average = ", average);
+}
