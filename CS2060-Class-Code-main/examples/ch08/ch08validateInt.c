@@ -63,7 +63,7 @@ void printLimits()
 }
 
 
-bool  exploreValidateInt(const char* buff)
+bool  exploreValidateInt(const char* buff, int validInt)
 {
 	//The address of this pointer will be passed to the strtol() function to verify that all chars were converted
 	//If it stores the null character then all chars have been read
