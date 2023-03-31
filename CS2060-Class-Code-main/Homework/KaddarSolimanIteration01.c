@@ -17,12 +17,17 @@
 
 
 #define SIZE 80
+const char urlFirstPart[] = "https:donate.com/";
+const char urlSecondPart[] = "?form=popup#";
 
 typedef struct organization {
 
     char organizationName[80];
     char bossName[80];
     char purpose[80];
+    char email[80];
+    char password[80];
+    char organizationUrl[]
     double goal;
 
 }Organization;
@@ -31,6 +36,7 @@ char* custom_fgets(char*, size_t, FILE*);
 bool getValidDouble(double*);
 void setUpOrganization(Organization*);
 void displayOrganization(Organization);
+char* createUrl(Organization*);
 
 
 int main(void)
@@ -38,7 +44,9 @@ int main(void)
 
     Organization org1;
     setUpOrganization(&org1);
-    displayOrganization(org1);
+    char* url = createUrl(&org1);
+ 
+
 
 	return 0;
 }
@@ -74,7 +82,7 @@ bool getValidDouble(double* validDouble)
         printf("%s", "Enter a positive number:");
         custom_fgets(inputStr, SIZE, stdin);
 
-        double intTest = strtod(inputStr, &end, 10);
+        double doubleTest = strtod(inputStr, &end, 10);
 
         if (end == inputStr) {
             printf("%s: not a decimal number\n", inputStr);
@@ -104,7 +112,28 @@ void setUpOrganization(Organization* organization)
 
     printf("%s\n", "Enter goal amount:");
     getValidDouble(&(organization->goal));
+
+    printf("%s\n", "Enter email address:");
+    custom_fgets(organization->email, SIZE, stdin);
+    
+    printf("%s\n", "Enter password:");
+    custom_fgets(organization->password, SIZE, stdin);
 }
+
+char* createUrl(Organization* org) 
+{
+    const char str1[] = "https:donate.com/";
+    const char str2[] = "?form=popup#";
+    int length = strlen(str1) + strlen(str2) + strlen(&(org->organizationName)) + 1;
+
+    char result[]
+        strcpy(result, str1);
+        strcat(result, &(org->organizationName));
+        strcat(result, str2);
+        return result;
+
+}
+
 
 void displayOrganization(Organization org)
 {
@@ -114,5 +143,5 @@ void displayOrganization(Organization org)
 
     printf("%s%s\n\n", "Owner name: ", org.bossName);
 
-    printf("%s%lf\n\n", "Organization goal: ", org.goal);
+    printf("%s%.2lf\n\n", "Organization goal: ", org.goal);
 }
