@@ -17,8 +17,10 @@
 
 
 #define SIZE 80
+#define URL_PARTS_LENGTH 30
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
+
 
 typedef struct organization {
 
@@ -27,7 +29,7 @@ typedef struct organization {
     char purpose[80];
     char email[80];
     char password[80];
-    char organizationUrl[]
+    char organizationUrl[URL_PARTS_LENGTH + SIZE];
     double goal;
 
 }Organization;
@@ -36,7 +38,8 @@ char* custom_fgets(char*, size_t, FILE*);
 bool getValidDouble(double*);
 void setUpOrganization(Organization*);
 void displayOrganization(Organization);
-char* createUrl(Organization*);
+void removeSpaces(char* name, const Organization*);
+void createUrl(Organization*);
 
 
 int main(void)
@@ -44,7 +47,8 @@ int main(void)
 
     Organization org1;
     setUpOrganization(&org1);
-    char* url = createUrl(&org1);
+    createUrl(&org1);
+    printf("%s%s\n\n", "Organization URL: ", org1.organizationUrl);
  
 
 
@@ -120,18 +124,29 @@ void setUpOrganization(Organization* organization)
     custom_fgets(organization->password, SIZE, stdin);
 }
 
-char* createUrl(Organization* org) 
+void removeSpaces(char* name, const Organization* org)
 {
-    const char str1[] = "https:donate.com/";
-    const char str2[] = "?form=popup#";
-    int length = strlen(str1) + strlen(str2) + strlen(&(org->organizationName)) + 1;
 
-    char result[]
-        strcpy(result, str1);
-        strcat(result, &(org->organizationName));
-        strcat(result, str2);
-        return result;
+    strcpy(name, org->organizationName);
+    for (int i = 0; i < strlen(org->organizationName); i++)
+    {
+        if (name[i] == ' ')
+        {
+            name[i] = '-';
+        }
+    }
+    return name;
+}
 
+void createUrl(Organization* org) 
+{
+    char nameWithNoSpaces[SIZE];
+        strcpy(&(org->organizationUrl), urlFirstPart);
+
+        removeSpaces(&(nameWithNoSpaces), &(org->organizationName));
+
+        strcat(&(org->organizationUrl), nameWithNoSpaces);
+        strcat(&(org->organizationUrl), urlSecondPart);
 }
 
 
