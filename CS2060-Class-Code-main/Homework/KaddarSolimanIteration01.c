@@ -14,10 +14,12 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 
 #define SIZE 80
 #define URL_PARTS_LENGTH 30
+#define ADMIN_PIN 'Q'
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
 
@@ -31,29 +33,59 @@ typedef struct organization {
     char password[80];
     char organizationUrl[URL_PARTS_LENGTH + SIZE];
     double goal;
+    double amountRaised;
 
 }Organization;
 
 char* custom_fgets(char*, size_t, FILE*);
-bool getValidDouble(double*);
+void getValidDouble(double*);
 void setUpOrganization(Organization*);
 void displayOrganization(Organization);
 void removeSpaces(char* name, const Organization*);
 void createUrl(Organization*);
+unsigned int getDonation(Organization*);
 
 
 int main(void)
 {
 
-    Organization org1;
-    setUpOrganization(&org1);
-    createUrl(&org1);
-    printf("%s%s\n\n", "Organization URL: ", org1.organizationUrl);
+    printf("%s\n", "---------------------------------------------------------");
+    printf("%s\n", "              Set Up Fundraiser");
+    printf("%s\n", "---------------------------------------------------------");
+    Organization fundraiser1;
+    setUpOrganization(&fundraiser1);
+    createUrl(&fundraiser1);
+    displayOrganization(fundraiser1);
  
+    printf("%s\n", "---------------------------------------------------------");
+    printf("%s\n", "                    Donate!");
+    printf("%s\n\n", "---------------------------------------------------------");
+    
+    bool finishDonating = false;
 
+    do 
+    {
+        printf("%s\n", "Enter Donation:");
+
+        //if not admin pin
+        if (getDonation(&fundraiser1) == 0) 
+        {
+            printf("%s\n", "thanks for donation!");
+        
+        }
+        //if admin pin is entered
+        else 
+        {
+            printf("%s\n", "hello admin");
+            finishDonating = true;
+        
+        }
+    } while (finishDonating != true);
+
+    printf("%s\n", "end donation mode");
 
 	return 0;
-}
+}   
 
 char* custom_fgets(char* stringPtr, size_t maxNumOfChars, FILE* inputStream) 
 {
@@ -73,7 +105,7 @@ char* custom_fgets(char* stringPtr, size_t maxNumOfChars, FILE* inputStream)
     return input;
 }
 
-bool getValidDouble(double* validDouble) 
+void getValidDouble(double* validDouble) 
 {
     char* end;
     errno = 0;
@@ -83,7 +115,6 @@ bool getValidDouble(double* validDouble)
 
     do
     {
-        printf("%s", "Enter a positive number:");
         custom_fgets(inputStr, SIZE, stdin);
 
         double doubleTest = strtod(inputStr, &end, 10);
@@ -105,16 +136,16 @@ bool getValidDouble(double* validDouble)
 
 void setUpOrganization(Organization* organization)
 {
-    printf("%s\n", "Enter a name for the organization:");
+    printf("%s", "Enter a name for the organization:");
     custom_fgets(organization->organizationName, SIZE, stdin);
 
-    printf("%s\n", "Enter the purpose of the organization:");
+    printf("%s", "Enter the purpose of the organization:");
     custom_fgets(organization->purpose, SIZE, stdin);
 
-    printf("%s\n", "Enter First and Last Name:");
+    printf("%s", "Enter First and Last Name:");
     custom_fgets(organization->bossName, SIZE, stdin);
 
-    printf("%s\n", "Enter goal amount:");
+    printf("%s", "Enter goal amount:");
     getValidDouble(&(organization->goal));
 
     printf("%s\n", "Enter email address:");
@@ -152,11 +183,58 @@ void createUrl(Organization* org)
 
 void displayOrganization(Organization org)
 {
-    printf("%s%s\n\n", "Organization Name: ", org.organizationName);
 
-    printf("%s%s\n\n", "Organization Purpose: ", org.purpose);
+    //“Thank you [first and last name]. The url to
+    //raise funds for [Organization] is  https:donate.com/[name-of-organization]?form=popup#.” 
 
-    printf("%s%s\n\n", "Owner name: ", org.bossName);
+    printf("%s%s. ", "Thank you ", org.bossName);
 
-    printf("%s%.2lf\n\n", "Organization goal: ", org.goal);
+    printf("%s%s%s\n", "The url to raise funds for ", org.organizationName, " is: ");
+
+    printf("%s\n\n", org.organizationUrl);
+
+}
+
+unsigned int getDonation(Organization* org) 
+{
+        char* end;
+        errno = 0;
+        bool gotValid = false;
+        unsigned int adminInput= 0;
+        double doubleTest = 0;
+        char inputStr[SIZE];
+
+        do
+        {
+            custom_fgets(inputStr, SIZE, stdin);
+
+            if (strlen(inputStr)<=1 && isdigit(inputStr[0])==0)
+            {
+                if (toupper(inputStr[0]) == ADMIN_PIN)
+                {
+                    gotValid = true;
+                    adminInput = 1;
+                }
+            }
+            
+            if (gotValid == false) 
+            {
+                double doubleTest = strtod(inputStr, &end, 10);
+                if (end == inputStr) {
+                    printf("%s: not a decimal number\n", inputStr);
+                }
+                else if ('\0' != *end)
+                {
+                    printf("%s: extra characters at end of input: %s\n", inputStr, end);
+                }
+                else {
+                    org->amountRaised = doubleTest;
+                    gotValid = true;
+                    adminInput = 0;
+                }
+            }
+           
+        } while (gotValid != true);
+
+        return adminInput;
 }
