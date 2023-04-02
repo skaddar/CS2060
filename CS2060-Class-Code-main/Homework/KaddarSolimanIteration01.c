@@ -45,7 +45,8 @@ void displayOrganization(Organization);
 void removeSpaces(char* name, const Organization*);
 void createUrl(Organization*);
 unsigned int getDonation(Organization*, double* );
-void displayFunds(Organization*);
+void displayFunds(const Organization*);
+void getValidZip(size_t);
 
 
 int main(void)
@@ -81,6 +82,9 @@ int main(void)
             printf("%s\n", "Last name:");
             custom_fgets(donorLastName, SIZE, stdin);
             printf("%s\n\n", "---------------------------------------------------------");
+
+            char zipcode[] = "";
+            getValidZip(&zipcode, ZIPCODE_LENGTH);
         
         }
         //if admin pin is entered
@@ -253,7 +257,7 @@ unsigned int getDonation(Organization* org, double* validDouble)
         return adminInput;
 }
 
-void displayFunds(Organization* org) 
+void displayFunds(const Organization* org) 
 {
     printf("%s\n\n", org->organizationUrl);
     printf("%s\n", "MAKE A DIFFERENCE BY YOUR DONATION");
@@ -274,23 +278,56 @@ void displayFunds(Organization* org)
     }
 }
 
-bool getValidZip(int zipcodeSize) 
+void getValidZip(char* zipcode, size_t zipcodeSize) 
 {
     bool flag = false;
-    char zipcode[] = "";
 
     do 
     {
         printf("%s\n", "Enter a valid Zipcode: ");
         custom_fgets(zipcode, SIZE, stdin);
 
-        if (zipcode[0]!='0')
+        //checks if the first character is a digit that is not 0
+        if (zipcode[0]!='0' && isdigit(zipcode[0]))
         {
+            //Checks if the length after removing the newline character is equal to a zip length
             if (strlen(zipcode) == ZIPCODE_LENGTH)
             {
-
+                //Loops until it counts 5 digits or encounters a non digit 
+                unsigned int counter = 0;
+                bool isDigit = true;
+                while (counter<=5 && isDigit)
+                {
+                    if (isdigit(zipcode[counter]))
+                    {
+                        counter++;
+                    }
+                    else 
+                    {
+                        isDigit = false;
+                    }
+                }
+                //Checks if the last loop repeated 5 times meaning it counted 5 digits
+                if (counter==5)
+                {
+                    flag = true;
+                }
+                else
+                {
+                    printf("%s\n", "zipcode must only contain valid integer values");
+                }
+            }
+            else 
+            {
+                printf("%s\n", "Zipcode can only be 5 characters long");
             }
         }
-    }
+        else 
+        {
+            printf("%s\n", "First Character must be a number greater than 0");
+        }
+    } while (flag == false);
+
+    printf("%s\n", "GOT IT");
 
 }
