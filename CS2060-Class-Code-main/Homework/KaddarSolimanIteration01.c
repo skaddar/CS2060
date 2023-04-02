@@ -20,6 +20,7 @@
 #define SIZE 80
 #define URL_PARTS_LENGTH 30
 #define ADMIN_PIN 'Q'
+#define ZIPCODE_LENGTH 5
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
 
@@ -71,10 +72,14 @@ int main(void)
 
         double donatedAmount = 0;
         //if not admin pin
-        if (getDonation(&fundraiser1) == 0) 
+        if (getDonation(&fundraiser1, &donatedAmount) == 0) 
         {
-
-            printf("%s\n", "thanks for donation!");
+            char donorFirstName[] = "";
+            char donorLastName[] = "";
+            printf("%s\n", "First name:");
+            custom_fgets(donorFirstName, SIZE, stdin);
+            printf("%s\n", "Last name:");
+            custom_fgets(donorLastName, SIZE, stdin);
             printf("%s\n\n", "---------------------------------------------------------");
         
         }
@@ -265,8 +270,27 @@ void displayFunds(Organization* org)
     else 
     {
         double percentage = (org->amountRaised / org->goal) * 100;
-        printf("%s%.2lf%s%.2lf \n\n", "We are ", percentage, " percent towards pur goal of ", org->goal);
+        printf("%s%.2lf%s%.2lf \n\n", "We are ", percentage, " percent towards our goal of ", org->goal);
     }
 }
 
+bool getValidZip(int zipcodeSize) 
+{
+    bool flag = false;
+    char zipcode[] = "";
 
+    do 
+    {
+        printf("%s\n", "Enter a valid Zipcode: ");
+        custom_fgets(zipcode, SIZE, stdin);
+
+        if (zipcode[0]!='0')
+        {
+            if (strlen(zipcode) == ZIPCODE_LENGTH)
+            {
+
+            }
+        }
+    }
+
+}
