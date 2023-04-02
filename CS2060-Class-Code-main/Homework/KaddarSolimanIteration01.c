@@ -43,7 +43,8 @@ void setUpOrganization(Organization*);
 void displayOrganization(Organization);
 void removeSpaces(char* name, const Organization*);
 void createUrl(Organization*);
-unsigned int getDonation(Organization*);
+unsigned int getDonation(Organization*, double* );
+void displayFunds(Organization*);
 
 
 int main(void)
@@ -65,12 +66,16 @@ int main(void)
 
     do 
     {
+        displayFunds(&fundraiser1);
         printf("%s\n", "Enter Donation:");
 
+        double donatedAmount = 0;
         //if not admin pin
         if (getDonation(&fundraiser1) == 0) 
         {
+
             printf("%s\n", "thanks for donation!");
+            printf("%s\n\n", "---------------------------------------------------------");
         
         }
         //if admin pin is entered
@@ -136,6 +141,9 @@ void getValidDouble(double* validDouble)
 
 void setUpOrganization(Organization* organization)
 {
+
+    organization->goal = 0;
+    organization->amountRaised = 0;
     printf("%s", "Enter a name for the organization:");
     custom_fgets(organization->organizationName, SIZE, stdin);
 
@@ -195,7 +203,7 @@ void displayOrganization(Organization org)
 
 }
 
-unsigned int getDonation(Organization* org) 
+unsigned int getDonation(Organization* org, double* validDouble)
 {
         char* end;
         errno = 0;
@@ -228,7 +236,8 @@ unsigned int getDonation(Organization* org)
                     printf("%s: extra characters at end of input: %s\n", inputStr, end);
                 }
                 else {
-                    org->amountRaised = doubleTest;
+                    org->amountRaised = org->amountRaised + doubleTest;
+                    *validDouble = doubleTest;
                     gotValid = true;
                     adminInput = 0;
                 }
@@ -238,3 +247,26 @@ unsigned int getDonation(Organization* org)
 
         return adminInput;
 }
+
+void displayFunds(Organization* org) 
+{
+    printf("%s\n\n", org->organizationUrl);
+    printf("%s\n", "MAKE A DIFFERENCE BY YOUR DONATION");
+
+    printf("%s%s\n", "Organization: ", org->organizationName);
+    printf("%s%s\n\n", "Purpose: ", org->purpose);
+
+    printf("%s%.2lf \n", "We currently have raised: ", org->amountRaised);
+
+    if (org->amountRaised >= org->goal) 
+    {
+        printf("%s\n\n", "We have reached our goal but could still use the donation"); 
+    }
+    else 
+    {
+        double percentage = (org->amountRaised / org->goal) * 100;
+        printf("%s%.2lf%s%.2lf \n\n", "We are ", percentage, " percent towards pur goal of ", org->goal);
+    }
+}
+
+
