@@ -15,12 +15,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 
 #define SIZE 80
 #define URL_PARTS_LENGTH 30
 #define ADMIN_PIN 'Q'
 #define ZIPCODE_LENGTH 5
+#define CARD_PROCESS_FEE 0.029
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
 
@@ -35,6 +37,8 @@ typedef struct organization {
     char organizationUrl[URL_PARTS_LENGTH + SIZE];
     double goal;
     double amountRaised;
+    unsigned int numOfDonors;
+
 
 }Organization;
 
@@ -42,11 +46,12 @@ char* custom_fgets(char*, size_t, FILE*);
 void getValidDouble(double*);
 void setUpOrganization(Organization*);
 void displayOrganization(Organization);
-void removeSpaces(char* name, const Organization*);
+char* removeSpaces(char* , const Organization*);
 void createUrl(Organization*);
 unsigned int getDonation(Organization*, double* );
 void displayFunds(const Organization*);
-void getValidZip(size_t);
+void getValidZip(char*, size_t, double);
+void askForReceipt(const Organization* , double);
 
 
 int main(void)
@@ -72,27 +77,35 @@ int main(void)
         printf("%s\n", "Enter Donation:");
 
         double donatedAmount = 0;
+
+
         //if not admin pin
         if (getDonation(&fundraiser1, &donatedAmount) == 0) 
         {
             char donorFirstName[] = "";
             char donorLastName[] = "";
+            char zipcode[] = "";
+
+
             printf("%s\n", "First name:");
             custom_fgets(donorFirstName, SIZE, stdin);
             printf("%s\n", "Last name:");
             custom_fgets(donorLastName, SIZE, stdin);
-            printf("%s\n\n", "---------------------------------------------------------");
+            
+            getValidZip(&zipcode, ZIPCODE_LENGTH, donatedAmount);
 
-            char zipcode[] = "";
-            getValidZip(&zipcode, ZIPCODE_LENGTH);
-        
+            askForReceipt(&fundraiser1, donatedAmount);
+       
         }
         //if admin pin is entered
         else 
         {
-            printf("%s\n", "hello admin");
+            printf("\n%s\n", "---------------------------------------------------------");
+            printf("%s\n", "                    Report Mode");
+            printf("%s\n\n", "---------------------------------------------------------");
+            
+
             finishDonating = true;
-        
         }
     } while (finishDonating != true);
 
@@ -172,7 +185,7 @@ void setUpOrganization(Organization* organization)
     custom_fgets(organization->password, SIZE, stdin);
 }
 
-void removeSpaces(char* name, const Organization* org)
+char* removeSpaces(char* name, const Organization* org)
 {
 
     strcpy(name, org->organizationName);
@@ -188,7 +201,7 @@ void removeSpaces(char* name, const Organization* org)
 
 void createUrl(Organization* org) 
 {
-    char nameWithNoSpaces[SIZE];
+    char nameWithNoSpaces[SIZE] = "";
         strcpy(&(org->organizationUrl), urlFirstPart);
 
         removeSpaces(&(nameWithNoSpaces), &(org->organizationName));
@@ -245,7 +258,10 @@ unsigned int getDonation(Organization* org, double* validDouble)
                     printf("%s: extra characters at end of input: %s\n", inputStr, end);
                 }
                 else {
-                    org->amountRaised = org->amountRaised + doubleTest;
+
+                    double processingFee = doubleTest * CARD_PROCESS_FEE;
+
+                    org->amountRaised = org->amountRaised + (doubleTest - processingFee);
                     *validDouble = doubleTest;
                     gotValid = true;
                     adminInput = 0;
@@ -278,7 +294,7 @@ void displayFunds(const Organization* org)
     }
 }
 
-void getValidZip(char* zipcode, size_t zipcodeSize) 
+void getValidZip(char* zipcode, size_t zipcodeSize, double donatedAmount) 
 {
     bool flag = false;
 
@@ -328,6 +344,59 @@ void getValidZip(char* zipcode, size_t zipcodeSize)
         }
     } while (flag == false);
 
-    printf("%s\n", "GOT IT");
+    double processingFee = donatedAmount * CARD_PROCESS_FEE;
+    printf("%s%.2lf%s\n", "Thank you for your donation.There is a ", CARD_PROCESS_FEE*100,
+        " % credit card processing");
+    printf("%s%.2lf%s%.2lf%s\n", "fee of [$ ", processingFee ,"] . [$ ", donatedAmount - processingFee
+        ,"] will be donated.");
+     
+}
+
+void askForReceipt(const Organization* org, double amountDonated) 
+{
+
+    char inputStr[SIZE] = "";
+    bool gotValid = false;
+    double processingFee = amountDonated * CARD_PROCESS_FEE;
+    double processedDonatedAmt = amountDonated - processingFee;
+
+    printf("%s\n", "Do you want a receipt? (y)es or (n)o?");
+    do
+    {
+        custom_fgets(inputStr, SIZE, stdin);
+
+        if (strlen(inputStr) <= 1)
+        {
+            if (toupper(inputStr[0]) == 'Y' || toupper(inputStr[0]) == 'N')
+            {
+                gotValid = true;                
+            }
+            else 
+            {
+                printf("%s\n", "You did not enter a y or n.");
+            }
+        }
+        else 
+        {
+            printf("%s\n", "You did not enter a y or n.");
+        }
+    } while (gotValid == false);
+
+    if (toupper(inputStr[0]) == 'Y') {
+        
+        time_t donationDate;
+        time(&donationDate);
+
+        printf("%s\n", "Receipt:");
+        printf("%s%s\n", "Organization: ", org->organizationName);
+        printf("%s%.2lf\n", "Donation Amount:", processedDonatedAmt );
+        printf("%s%s \n", "Donation Date : ", ctime(&donationDate));
+        printf("%s\n\n", "---------------------------------------------------------");
+    }
+    if (toupper(inputStr[0]) == 'N')
+    {
+        printf("%s\n\n", "---------------------------------------------------------");
+        
+    }
 
 }
