@@ -38,8 +38,6 @@ typedef struct organization {
     double goal;
     double amountRaised;
     unsigned int numOfDonors;
-
-
 }Organization;
 
 char* custom_fgets(char*, size_t, FILE*);
@@ -263,6 +261,7 @@ unsigned int getDonation(Organization* org, double* validDouble)
 
                     org->amountRaised = org->amountRaised + (doubleTest - processingFee);
                     *validDouble = doubleTest;
+                    org->numOfDonors = org->numOfDonors + 1;
                     gotValid = true;
                     adminInput = 0;
                 }
