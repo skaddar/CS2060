@@ -4,7 +4,10 @@
 // Iteration 01 Implementation
 // Due:4 April 2023
 // 
-// Description:
+// Description: Use strings and structures to create a fundraiser program that allows users to keep donating
+// until the admin checks out. Will use string functions to get information such as email, password, names, and even
+// the zipcode. Learn to ditch scanf for fgets and converting that string to a number. The structure will be the 
+// fundraiser and will use pointers to pass the structure and other strings by reference to be updated.
 // 
 // 
 
@@ -27,6 +30,7 @@ const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
 
 
+//structure for the fundraisers 
 typedef struct organization {
 
     char organizationName[80];
@@ -63,6 +67,10 @@ int main(void)
     printf("%s\n", "---------------------------------------------------------");
     printf("%s\n", "              Set Up Fundraiser");
     printf("%s\n", "---------------------------------------------------------");
+
+    //declare the fundraiser and pass it by reference to the method to initialize the data in the struct
+    //also to create the URL for the organization
+    //pass theorganization by value to display its information
     Organization fundraiser1;
     setUpOrganization(&fundraiser1);
     createUrl(&fundraiser1);
@@ -72,37 +80,47 @@ int main(void)
     printf("%s\n", "                    Donate!");
     printf("%s\n\n", "---------------------------------------------------------");
     
+    //boolean flag will only be set as true when the admin is verified 
     bool finishDonating = false;
 
+    //This will loop until the admin is verified 
     do 
     {
         displayFunds(&fundraiser1);
         printf("%s\n", "Enter Donation:");
 
-        double donatedAmount = 0;
-
-
+        //donated amount will be passed and updated in the getDonation function
+        //declared in main because it will be used for the receipt 
         //if not admin pin
+        //getDonation will return 0 if the admin pin was not entered
+        //if the admin pin was not entered. get the donor name and ask for receipt and then loop again
+        
+        double donatedAmount = 0;
         if (getDonation(&fundraiser1, &donatedAmount) == 0) 
         {
-             getDonorName();
+            getDonorName();
             getValidZip(ZIPCODE_LENGTH, donatedAmount);
-
             askForReceipt(&fundraiser1, donatedAmount);
        
         }
-        //if admin pin is entered
+
+        //if admin pin is entered ask for the email and password and theyhave 2 tries to enter them correctly
+        //If incorrect then exit if statement and loop donation mode again. If correct then set boolean flag 
+        //To true and exit the loop
+
         else 
         {
             printf("\n%s\n", "---------------------------------------------------------");
             printf("%s\n", "                    Report Mode");
             printf("%s\n\n", "---------------------------------------------------------");
             
+            //If the email is verified
             if (compareEmail(&fundraiser1))
             {
+                //If the password is verified 
                 if (comparePass(&fundraiser1)) 
                 {
-
+                    //Summarize fundraiser data and exit loop 
                     fundraiserSummary(&fundraiser1);
                     finishDonating = true;
                 }
@@ -121,13 +139,19 @@ int main(void)
     } while (finishDonating != true);
 
 	return 0;
-}   
+}   //------------------------------------------END MAIN----------------------------------------------
 
+//Same parameters as fgets and returns a string 
+//This function will remove the new line character from an input and return the updated input
 char* custom_fgets(char* stringPtr, size_t maxNumOfChars, FILE* inputStream) 
 {
+    //regular fgets with the new line character
+    //Get the length of the input string and make sure
     char* input = fgets(stringPtr, maxNumOfChars, inputStream);
     size_t length = strlen(stringPtr);
 
+    //make sure the input is not null and that the user actually entered something then
+    //replace newline with null
     if (input != NULL) 
     {
         if (length > 0)
@@ -139,22 +163,31 @@ char* custom_fgets(char* stringPtr, size_t maxNumOfChars, FILE* inputStream)
         }
     }
     return input;
-}
+}//-----------------------------custom fgets------------------------------------------------
 
+//parameters is just a double passed by reference and stored as a pointer
+//does not return anything because the value is updated in the function
 void getValidDouble(double* validDouble) 
 {
+    //the end pointer will store the last char in the string
+    //errno set to 0 but will change if error is encountered
+    //got valid is a boolean flag
+    //double test will store what strtod will output
     char* end;
     errno = 0;
     bool gotValid = false;
     double doubleTest = 0;
     char inputStr[SIZE];
 
+    //will loop until string can be succesfulyy converted to a double
     do
     {
         custom_fgets(inputStr, SIZE, stdin);
-
         double doubleTest = strtod(inputStr, &end, 10);
 
+        //first Make sure the end has moved meaning it read some values
+        //then check that end is null because that means it read all values
+        //if it passes those tests then update the double and exit loop
         if (end == inputStr) {
             printf("%s: not a decimal number\n", inputStr);
         }
@@ -167,9 +200,11 @@ void getValidDouble(double* validDouble)
             gotValid = true;
         }
     } while (gotValid != true);
-}
+}//------------------------------------end getValidDouble--------------------------------
 
 
+//initializes all of the organization data members 
+//no return the paramter is just the organization passed by reference using a pointer
 void setUpOrganization(Organization* organization)
 {
 
@@ -195,11 +230,15 @@ void setUpOrganization(Organization* organization)
     
     printf("%s\n", "Enter password:");
     custom_fgets(organization->password, SIZE, stdin);
-}
 
+}//------------------------------------end setUpOrganization-----------------------------------------
+
+//returns a string with no spaces. parameters is the organization passed as a constant and a string to store
+//the string without the spaces
 char* removeSpaces(char* name, const Organization* org)
 {
-
+    //get the name of the organization and store the string in name
+    //Then loop through all of the characters in the string and replace any spaces with a dash
     strcpy(name, org->organizationName);
     for (int i = 0; i < strlen(org->organizationName); i++)
     {
@@ -209,10 +248,13 @@ char* removeSpaces(char* name, const Organization* org)
         }
     }
     return name;
-}
+}//------------------------------------end remove spaces-----------------------------------------
 
+//uses the organization name and the url member to store the URL
+//will call the remove spaces method and use strcat to put the prefix and suffix of the URL
 void createUrl(Organization* org) 
 {
+    //will store the return of remove spaces
     char nameWithNoSpaces[SIZE] = "";
         strcpy(&(org->organizationUrl), urlFirstPart);
 
@@ -220,15 +262,14 @@ void createUrl(Organization* org)
 
         strcat(&(org->organizationUrl), nameWithNoSpaces);
         strcat(&(org->organizationUrl), urlSecondPart);
-}
+
+}//------------------------------------end createUrl-----------------------------------------
 
 
 void displayOrganization(Organization org)
 {
-
     //“Thank you [first and last name]. The url to
-    //raise funds for [Organization] is  https:donate.com/[name-of-organization]?form=popup#.” 
-
+    //raise funds for [Organization] is  https:donate.com/[name-of-organization]?form=popup#.”
     printf("%s%s. ", "Thank you ", org.bossName);
 
     printf("%s%s%s\n", "The url to raise funds for ", org.organizationName, " is: ");
@@ -237,6 +278,9 @@ void displayOrganization(Organization org)
 
 }
 
+//gets donations and checks for admin pin
+//basically the same as getValidDouble but uses another check for the admin pin at the start
+//returns a 0 if admin pin is not entered and 1 if admin pin is entered
 unsigned int getDonation(Organization* org, double* validDouble)
 {
         char* end;
@@ -248,8 +292,8 @@ unsigned int getDonation(Organization* org, double* validDouble)
 
         do
         {
+            //check if the input is one character long and it is not a digit and that char is the admin Pin 
             custom_fgets(inputStr, SIZE, stdin);
-
             if (strlen(inputStr)<=1 && isdigit(inputStr[0])==0)
             {
                 if (toupper(inputStr[0]) == ADMIN_PIN)
@@ -259,6 +303,7 @@ unsigned int getDonation(Organization* org, double* validDouble)
                 }
             }
             
+            //Same as getValidDouble
             if (gotValid == false) 
             {
                 double doubleTest = strtod(inputStr, &end, 10);
@@ -285,8 +330,10 @@ unsigned int getDonation(Organization* org, double* validDouble)
         } while (gotValid != true);
 
         return adminInput;
-}
+}//------------------------------------end getDonation-----------------------------------------
 
+//simple display function
+//calculates the percentage towards the goal using amount raised and goal in the organization
 void displayFunds(const Organization* org) 
 {
     printf("%s\n\n", org->organizationUrl);
@@ -306,8 +353,10 @@ void displayFunds(const Organization* org)
         double percentage = (org->amountRaised / org->goal) * 100;
         printf("%s%.2lf%s%.2lf \n\n", "We are ", percentage, " percent towards our goal of ", org->goal);
     }
-}
+}//------------------------------------end displayFunds-----------------------------------------
 
+//function to get a valid 5 digit number not starting with 0
+//Parameters only need the size that the zipcode can be and how much is donated
 void getValidZip(size_t zipcodeSize, double donatedAmount) 
 {
     bool flag = false;
@@ -358,14 +407,18 @@ void getValidZip(size_t zipcodeSize, double donatedAmount)
         }
     } while (flag == false);
 
+    //calculates processing fee and prints out the thanks for donation
+
     double processingFee = donatedAmount * CARD_PROCESS_FEE;
     printf("%s%.2lf%s\n", "Thank you for your donation.There is a ", CARD_PROCESS_FEE*100,
         " % credit card processing");
     printf("%s%.2lf%s%.2lf%s\n", "fee of [$ ", processingFee ,"] . [$ ", donatedAmount - processingFee
         ,"] will be donated.");
      
-}
+}//------------------------------------end getValidZip-----------------------------------------
 
+//no returns. uses amount donated and the organization as a constant to ask and print a receipt
+//This function will check for one character
 void askForReceipt(const Organization* org, double amountDonated) 
 {
 
@@ -379,8 +432,11 @@ void askForReceipt(const Organization* org, double amountDonated)
     {
         custom_fgets(inputStr, SIZE, stdin);
 
+        //Make sure input is one character
+
         if (strlen(inputStr) <= 1)
         {
+            //Make sure that character can be lower or uppercase and is N or Y
             if (toupper(inputStr[0]) == 'Y' || toupper(inputStr[0]) == 'N')
             {
                 gotValid = true;                
@@ -396,6 +452,8 @@ void askForReceipt(const Organization* org, double amountDonated)
         }
     } while (gotValid == false);
 
+    //if Y is entered print receipt
+    //if N is entered exit function
     if (toupper(inputStr[0]) == 'Y') {
         
         time_t donationDate;
@@ -413,32 +471,40 @@ void askForReceipt(const Organization* org, double amountDonated)
         
     }
 
-}
+}//------------------------------------end askForReceipt-----------------------------------------
 
+//function that gives admin two tries to enter a valid email that matches the organization email
+//returns a true if email is verified and false if both tries are used up
 bool compareEmail(const Organization* org) 
 {
     unsigned int counter = 0;
     bool validStringEntered = false;
     char input[SIZE] = "";
 
+    //loop while they have not used both attempts and valid email has not been entered
     while (counter < 2 && validStringEntered == false)
     {
         printf("%s\n", "Enter email: ");
         custom_fgets(input, SIZE, stdin);
 
+        //if email is valid set boolean flag and exit loop
         if (strcmp(input, org->email) == 0) 
         {
             validStringEntered = true;
         }
+        //if email is incorrect display attempts left add to counter and loop again
         else 
         {
-            printf("%s%d%s\n", "Incorrect email. ", 2-counter, " attempts left");
+            printf("%s%d%s\n", "Incorrect email. ", 1-counter, " attempts left");
             counter++;
         }
     }
+    //return boolean
     return validStringEntered;
-}
+}//------------------------------------end compareEmail-----------------------------------------
 
+//this function is the exact same as compare email except it checks for password. could have made one function
+//but printing is different
 bool comparePass(const Organization* org)
 {
     unsigned int counter = 0;
@@ -465,8 +531,9 @@ bool comparePass(const Organization* org)
     }
 
     return validStringEntered;
-}
+}//------------------------------------end comparePass-----------------------------------------
 
+//print summary of organization
 void fundraiserSummary(const Organization* org) 
 {
     printf("\n%s%s\n", "Summary for ", org->organizationName);
@@ -476,6 +543,7 @@ void fundraiserSummary(const Organization* org)
     printf("%s%.2lf\n", "amount raised in credit card fees: ", org->creditCardFees);
 }
 
+//get donor names no verification necessary
 void getDonorName() 
 {
 
