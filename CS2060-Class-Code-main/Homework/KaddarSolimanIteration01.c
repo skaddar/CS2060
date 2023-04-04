@@ -38,6 +38,7 @@ typedef struct organization {
     double goal;
     double amountRaised;
     unsigned int numOfDonors;
+    double creditCardFees;
 }Organization;
 
 char* custom_fgets(char*, size_t, FILE*);
@@ -48,8 +49,12 @@ char* removeSpaces(char* , const Organization*);
 void createUrl(Organization*);
 unsigned int getDonation(Organization*, double* );
 void displayFunds(const Organization*);
-void getValidZip(char*, size_t, double);
+void getValidZip(size_t, double);
 void askForReceipt(const Organization* , double);
+bool comparePass(const Organization* org);
+bool compareEmail(const Organization* org);
+void fundraiserSummary(const Organization* org);
+void getDonorName();
 
 
 int main(void)
@@ -80,17 +85,8 @@ int main(void)
         //if not admin pin
         if (getDonation(&fundraiser1, &donatedAmount) == 0) 
         {
-            char donorFirstName[] = "";
-            char donorLastName[] = "";
-            char zipcode[] = "";
-
-
-            printf("%s\n", "First name:");
-            custom_fgets(donorFirstName, SIZE, stdin);
-            printf("%s\n", "Last name:");
-            custom_fgets(donorLastName, SIZE, stdin);
-            
-            getValidZip(&zipcode, ZIPCODE_LENGTH, donatedAmount);
+             getDonorName();
+            getValidZip(ZIPCODE_LENGTH, donatedAmount);
 
             askForReceipt(&fundraiser1, donatedAmount);
        
@@ -102,12 +98,27 @@ int main(void)
             printf("%s\n", "                    Report Mode");
             printf("%s\n\n", "---------------------------------------------------------");
             
+            if (compareEmail(&fundraiser1))
+            {
+                if (comparePass(&fundraiser1)) 
+                {
 
-            finishDonating = true;
+                    fundraiserSummary(&fundraiser1);
+                    finishDonating = true;
+                }
+                else 
+                {
+                    printf("%s", "Wrong Password. Going back to donations mode.\n");
+                }
+            }
+            else 
+            {
+                printf("%s", "Wrong Email. Going back to donations mode.\n");
+            }
+
+            
         }
     } while (finishDonating != true);
-
-    printf("%s\n", "end donation mode");
 
 	return 0;
 }   
@@ -164,6 +175,9 @@ void setUpOrganization(Organization* organization)
 
     organization->goal = 0;
     organization->amountRaised = 0;
+    organization->numOfDonors = 0;
+    organization->creditCardFees = 0;
+
     printf("%s", "Enter a name for the organization:");
     custom_fgets(organization->organizationName, SIZE, stdin);
 
@@ -260,8 +274,9 @@ unsigned int getDonation(Organization* org, double* validDouble)
                     double processingFee = doubleTest * CARD_PROCESS_FEE;
 
                     org->amountRaised = org->amountRaised + (doubleTest - processingFee);
-                    *validDouble = doubleTest;
+                    org->creditCardFees = org->creditCardFees + processingFee;
                     org->numOfDonors = org->numOfDonors + 1;
+                    *validDouble = doubleTest;
                     gotValid = true;
                     adminInput = 0;
                 }
@@ -293,10 +308,10 @@ void displayFunds(const Organization* org)
     }
 }
 
-void getValidZip(char* zipcode, size_t zipcodeSize, double donatedAmount) 
+void getValidZip(size_t zipcodeSize, double donatedAmount) 
 {
     bool flag = false;
-
+    char zipcode[SIZE] = "";
     do 
     {
         printf("%s\n", "Enter a valid Zipcode: ");
@@ -398,4 +413,76 @@ void askForReceipt(const Organization* org, double amountDonated)
         
     }
 
+}
+
+bool compareEmail(const Organization* org) 
+{
+    unsigned int counter = 0;
+    bool validStringEntered = false;
+    char input[SIZE] = "";
+
+    while (counter < 2 && validStringEntered == false)
+    {
+        printf("%s\n", "Enter email: ");
+        custom_fgets(input, SIZE, stdin);
+
+        if (strcmp(input, org->email) == 0) 
+        {
+            validStringEntered = true;
+        }
+        else 
+        {
+            printf("%s%d%s\n", "Incorrect email. ", 2-counter, " attempts left");
+            counter++;
+        }
+    }
+    return validStringEntered;
+}
+
+bool comparePass(const Organization* org)
+{
+    unsigned int counter = 0;
+    bool validStringEntered = false;
+    char input[SIZE] = "";
+
+    while (counter < 2 && validStringEntered == false)
+    {
+        printf("%s\n", "Enter Password: ");
+        custom_fgets(input, SIZE, stdin);
+
+        if (strcmp(input, org->password) == 0)
+        {
+            validStringEntered = true;
+        }
+        else
+        {
+            printf("%s%d%s\n", "Incorrect Password. ", 2 - counter, " attempts left");
+            counter++;
+        }
+    }
+    if (counter == 2) {
+        printf("%s", "Going back to donations mode.\n");
+    }
+
+    return validStringEntered;
+}
+
+void fundraiserSummary(const Organization* org) 
+{
+    printf("\n%s%s\n", "Summary for ", org->organizationName);
+    printf("%s\n", "----------------------------------------------------------------");
+    printf("%s%d\n","number of donors: ", org->numOfDonors);
+    printf("%s%.2lf\n", "amount raised: ", org->amountRaised );
+    printf("%s%.2lf\n", "amount raised in credit card fees: ", org->creditCardFees);
+}
+
+void getDonorName() 
+{
+
+    char donorFirstName[SIZE] = "";
+    char donorLastName[SIZE] = "";
+    printf("%s\n", "First name:");
+    custom_fgets(donorFirstName, SIZE, stdin);
+    printf("%s\n", "Last name:");
+    custom_fgets(donorLastName, SIZE, stdin);
 }
