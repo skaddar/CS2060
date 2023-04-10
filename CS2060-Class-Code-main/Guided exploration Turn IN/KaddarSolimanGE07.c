@@ -36,7 +36,6 @@ void writePetsToFile(Pet*);
 
 int main(void)
 {
-  
     insertPets();
     return 0;
 }//-----------------------------------MAIN----------------------------------------------------------
@@ -250,12 +249,14 @@ void writePetsToFile(Pet *headPtr)
 {
     FILE* pfPtr;
 
+    puts("");
     // fopen opens file. Exit program if unable to create file 
     if ((pfPtr = fopen("C:\\CS2060Files\\pets.txt", "w")) == NULL) {
         puts("File could not be opened");
     }
     else{
 
+        puts("wrote in file");
         Pet* currentPet = NULL;
         currentPet = headPtr;
         while (currentPet != NULL)
