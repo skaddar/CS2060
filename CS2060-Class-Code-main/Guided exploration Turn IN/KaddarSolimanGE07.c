@@ -31,6 +31,7 @@ int compareStrings(const char*, const char*);
 void insertPets();
 void displayPets(Pet*);
 Pet* createPet(Pet**, unsigned int*);
+void writePetsToFile(Pet*);
 
 
 int main(void)
@@ -90,11 +91,11 @@ int compareStrings(const char* str1, const char* str2) {
 
         if (result < 0) {
 
-            result = 1;
+            result = -1;
         }
         if (result > 0) {
 
-            result = -1;
+            result = 1;
         }
     }
     return result;
@@ -122,7 +123,7 @@ void insertPets()
         if (addPet == 0)
         {
             displayPets(headPtr);
-            printf("%s\n", "exit");
+            writePetsToFile(headPtr);
             flag = true;
         }
 
@@ -193,6 +194,7 @@ Pet* createPet(Pet** headPtr, unsigned int* numOfPets)
         printf("%s\n", "Enter the age of the pet: ");
         scanf("%d", &newAnimal->age);
 
+        puts("");
         newAnimal->nextPetPtr = NULL;
 
         Pet* previousPetPtr = NULL;
@@ -227,12 +229,42 @@ Pet* createPet(Pet** headPtr, unsigned int* numOfPets)
 
 void displayPets(Pet* headPtr) 
 {
-    Pet* currentPet = NULL;
-    currentPet = headPtr;
-    while (currentPet != NULL) 
+    if(headPtr == NULL)
     {
-        printf("%s%s%d\n",currentPet->name, " == ", currentPet->age);
-        currentPet = currentPet->nextPetPtr;
+        puts("No pets in list");
     }
-    puts("NULL");
+    else 
+    {
+        Pet* currentPet = NULL;
+        currentPet = headPtr;
+        while (currentPet != NULL)
+        {
+            printf("%s%s%d\n", currentPet->name, " == ", currentPet->age);
+            currentPet = currentPet->nextPetPtr;
+        }
+        puts("NULL");
+    }
+}
+
+void writePetsToFile(Pet *headPtr) 
+{
+    FILE* pfPtr;
+
+    // fopen opens file. Exit program if unable to create file 
+    if ((pfPtr = fopen("C:\\CS2060Files\\pets.txt", "w")) == NULL) {
+        puts("File could not be opened");
+    }
+    else{
+
+        Pet* currentPet = NULL;
+        currentPet = headPtr;
+        while (currentPet != NULL)
+        {
+            fprintf(pfPtr, "%s%s%d\n", currentPet->name, " == ", currentPet->age);
+            currentPet = currentPet->nextPetPtr;
+        }
+
+        fclose(pfPtr);
+    }
+
 }
