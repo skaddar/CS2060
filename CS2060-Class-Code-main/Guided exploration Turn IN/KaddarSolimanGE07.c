@@ -42,6 +42,7 @@ int main(void)
 
 char* custom_fgets(char* stringPtr, size_t maxNumOfChars, FILE* inputStream)
 {
+
     //regular fgets with the new line character
     //Get the length of the input string and make sure
     char* input = fgets(stringPtr, SIZE, inputStream);
@@ -89,11 +90,11 @@ int compareStrings(const char* str1, const char* str2) {
 
         if (result < 0) {
 
-            result = -1;
+            result = 1;
         }
         if (result > 0) {
 
-            result = 1;
+            result = -1;
         }
     }
     return result;
@@ -103,9 +104,9 @@ void insertPets()
 {
     bool flag = false;
     unsigned int numOfPets = 0;
-    char petName[SIZE] = "";
 
-    Pet* headPtr;
+
+    Pet* headPtr= NULL;
     Pet *pet1 = createPet(&headPtr, &numOfPets);
 
     do
@@ -116,7 +117,7 @@ void insertPets()
         if (addPet == 1)
         {
             printf("%s\n", "Add a new pet");
-            Pet* headPtr = createPet(&headPtr, &numOfPets);
+            Pet* petPtr = createPet(&headPtr, &numOfPets);
         }
         if (addPet == 0)
         {
@@ -186,7 +187,6 @@ Pet* createPet(Pet** headPtr, unsigned int* numOfPets)
 
     if (newAnimal != NULL)
     {
-        numOfPets++;
         printf("%s\n", "Enter the name of the pet: ");
         custom_fgets(newAnimal->name, SIZE, stdin);
 
@@ -199,7 +199,7 @@ Pet* createPet(Pet** headPtr, unsigned int* numOfPets)
 
         Pet* currentPetPtr = *headPtr;
 
-        while (currentPetPtr == NULL && compareStrings(newAnimal->name, currentPetPtr->name) == -1)
+        while (currentPetPtr != NULL && compareStrings(newAnimal->name, currentPetPtr->name) == 1)
         {
             previousPetPtr = currentPetPtr;
 
