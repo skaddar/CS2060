@@ -8,8 +8,8 @@
 // until the admin checks out. Will use string functions to get information such as email, password, names, and even
 // the zipcode. Learn to ditch scanf for fgets and converting that string to a number. The structure will be the 
 // fundraiser and will use pointers to pass the structure and other strings by reference to be updated.
-// 
-// 
+//
+
 
 #include <stdio.h>
 #include <stdbool.h>

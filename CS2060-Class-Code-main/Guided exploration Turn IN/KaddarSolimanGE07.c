@@ -28,15 +28,48 @@ typedef struct pet {
 char* custom_fgets(char*, size_t, FILE*);
 int askForInsert();
 int compareStrings(const char*, const char*);
-void insertPets();
 void displayPets(Pet*);
 Pet* createPet(Pet**, unsigned int*);
 void writePetsToFile(Pet*);
+void removeRemainingPets(Pet**);
+bool deletePet(Pet**, char*);
+void deletePetsFunction(Pet*);
 
 
 int main(void)
 {
-    insertPets();
+
+    bool flag = false;
+    unsigned int numOfPets = 0;
+
+
+    Pet* headPtr = NULL;
+    Pet* pet1 = createPet(&headPtr, &numOfPets);
+
+    do
+    {
+        puts("created a new pet");
+        unsigned int addPet = askForInsert();
+
+        if (addPet == 1)
+        {
+            printf("%s\n", "Add a new pet");
+            Pet* petPtr = createPet(&headPtr, &numOfPets);
+        }
+        if (addPet == 0)
+        {
+            displayPets(headPtr);
+            writePetsToFile(headPtr);
+            flag = true;
+        }
+
+    } while (flag == false);
+
+    deletePetsFunction(headPtr);
+
+    removeRemainingPets(&headPtr);
+
+    displayPets(headPtr);
     return 0;
 }//-----------------------------------MAIN----------------------------------------------------------
 
@@ -100,37 +133,35 @@ int compareStrings(const char* str1, const char* str2) {
     return result;
 }//String compare method -----------------------------------------------------------------------------
 
-void insertPets() 
+void deletePetsFunction(Pet* headPtr)
 {
     bool flag = false;
-    unsigned int numOfPets = 0;
+    bool petsLeft = true;
 
+    while (flag == false && petsLeft ==true)
+{
 
-    Pet* headPtr= NULL;
-    Pet *pet1 = createPet(&headPtr, &numOfPets);
+    puts("Would you like to delete a pet?");
+    unsigned int addPet = askForInsert();
 
-    do
+    if (addPet == 1)
     {
-        puts("created a new pet");
-        unsigned int addPet = askForInsert();
+        char petToDelete[SIZE] = "";
+        puts("enter pet name:");
+        custom_fgets(petToDelete, SIZE, stdin);
 
-        if (addPet == 1)
-        {
-            printf("%s\n", "Add a new pet");
-            Pet* petPtr = createPet(&headPtr, &numOfPets);
-        }
-        if (addPet == 0)
-        {
-            displayPets(headPtr);
-            writePetsToFile(headPtr);
-            flag = true;
-        }
+        petsLeft = deletePet(&headPtr, petToDelete);
 
-
-    } while (flag == false);
+    }
+    if (addPet == 0)
+    {
+        displayPets(headPtr);
+        flag = true;
+        petsLeft = false;
+    }
+}
 
 }//-----------------------------------Insert Pets function---------------------------
-
 
 
 int askForInsert()
@@ -267,5 +298,78 @@ void writePetsToFile(Pet *headPtr)
 
         fclose(pfPtr);
     }
+
+}
+
+bool deletePet(Pet** headPtr, char* petToDelete)
+{
+    
+    Pet* previousPtr = NULL;
+    Pet* currentPtr = *headPtr;
+
+    bool petsLeft = true;
+
+    
+    if (*headPtr != NULL)
+    {
+        if (compareStrings((*headPtr)-> name, petToDelete ) == 0)
+        {
+
+            *headPtr = (*headPtr)->nextPetPtr;
+
+            free(currentPtr);
+            currentPtr = NULL;
+        }
+        else 
+        {
+         
+            while (currentPtr != NULL && compareStrings(currentPtr->name, petToDelete) !=0)
+            {
+             
+                previousPtr = currentPtr;
+                currentPtr = currentPtr->nextPetPtr;
+            }
+
+     	
+            if (currentPtr != NULL)
+            {
+        
+                previousPtr -> nextPetPtr = currentPtr->nextPetPtr;
+                free(currentPtr);
+                currentPtr = NULL;
+            }
+            else
+            {
+                puts("pet to delete not found");
+            }
+
+            if (headPtr == NULL) 
+            {
+                puts("No more pets in the list");
+                petsLeft = false;
+            }
+        }
+    }
+    else 
+    {
+        puts("There aren't any pets in the list");
+    }
+
+    return petsLeft;
+} //deletePet
+
+void removeRemainingPets(Pet** headPtr) 
+{
+    Pet* currentPtr = *headPtr;
+    Pet* nextNodePtr = NULL;
+
+    while (currentPtr != NULL)
+    {
+        nextNodePtr = currentPtr->nextPetPtr;
+        free(currentPtr);
+        currentPtr = nextNodePtr;
+    }
+
+    *headPtr = NULL;
 
 }
