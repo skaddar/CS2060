@@ -43,6 +43,7 @@ typedef struct organization {
     double amountRaised;
     unsigned int numOfDonors;
     double creditCardFees;
+
 }Organization;
 
 char* custom_fgets(char*, size_t, FILE*);
