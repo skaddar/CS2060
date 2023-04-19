@@ -46,7 +46,7 @@ typedef struct organization {
 
 }Organization;
 
-char* custom_fgets(char*, size_t, FILE*);
+char* custom_fgets(char*, int, FILE*);
 void getValidDouble(double*);
 void setUpOrganization(Organization*);
 void displayOrganization(Organization);
@@ -144,7 +144,7 @@ int main(void)
 
 //Same parameters as fgets and returns a string 
 //This function will remove the new line character from an input and return the updated input
-char* custom_fgets(char* stringPtr, size_t maxNumOfChars, FILE* inputStream) 
+char* custom_fgets(char* stringPtr, int maxNumOfChars, FILE* inputStream) 
 {
     //regular fgets with the new line character
     //Get the length of the input string and make sure
@@ -184,7 +184,7 @@ void getValidDouble(double* validDouble)
     do
     {
         custom_fgets(inputStr, SIZE, stdin);
-        double doubleTest = strtod(inputStr, &end, 10);
+        double doubleTest = strtod(inputStr, &end);
 
         //first Make sure the end has moved meaning it read some values
         //then check that end is null because that means it read all values
@@ -257,12 +257,12 @@ void createUrl(Organization* org)
 {
     //will store the return of remove spaces
     char nameWithNoSpaces[SIZE] = "";
-        strcpy(&(org->organizationUrl), urlFirstPart);
+        strcpy(org->organizationUrl, urlFirstPart);
 
-        removeSpaces(&(nameWithNoSpaces), &(org->organizationName));
+        removeSpaces(nameWithNoSpaces, org);
 
-        strcat(&(org->organizationUrl), nameWithNoSpaces);
-        strcat(&(org->organizationUrl), urlSecondPart);
+        strcat((org->organizationUrl), nameWithNoSpaces);
+        strcat(org->organizationUrl, urlSecondPart);
 
 }//------------------------------------end createUrl-----------------------------------------
 
@@ -307,7 +307,7 @@ unsigned int getDonation(Organization* org, double* validDouble)
             //Same as getValidDouble
             if (gotValid == false) 
             {
-                double doubleTest = strtod(inputStr, &end, 10);
+                double doubleTest = strtod(inputStr, &end);
                 if (end == inputStr) {
                     printf("%s: not a decimal number\n", inputStr);
                 }
