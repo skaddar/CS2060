@@ -547,7 +547,6 @@ void fundraiserSummary(const Organization* org)
 //get donor names no verification necessary
 void getDonorName() 
 {
-
     char donorFirstName[SIZE] = "";
     char donorLastName[SIZE] = "";
     printf("%s\n", "First name:");
