@@ -212,7 +212,7 @@ int askForInsert()
     return result;
 }//------------------------------------end askForReceipt-----------------------------------------
 
-Pet* createPet(Pet** headPtr, unsigned int* numOfPets)
+Pet* createPet(Pet** headPtr)
 {
     Pet *newAnimal = malloc(sizeof(Pet));
 
