@@ -27,6 +27,7 @@
 #define ADMIN_PIN 'Q'
 #define ZIPCODE_LENGTH 5
 #define CARD_PROCESS_FEE 0.031
+#define PASSWORD_MINIMUM 7
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
 const char fileReceipt[] = "-receipt.txt";
@@ -54,12 +55,14 @@ char* custom_fgets(char*, int, FILE*);
 void setUpOrganization(Organization**);
 int askForInsert();
 int compareStrings(const char* , const char*);
-void getValidDouble(double* validDouble);
+bool getValidDouble(double* validDouble);
 void displayOrgs(Organization* );
 void addOrgToList(Organization** , Organization* );
-void createUrl(char*);
+void createUrl(Organization*);
 char* removeSpaces(char*, const char*);
 void displayOrganizationUrl(const Organization);
+bool isValidEmail(const char*);
+bool isValidPass(const char*, int);
 
 
 int main(void)
@@ -76,6 +79,8 @@ int main(void)
 
     do 
     {
+
+        printf("%s\n", "Do you want to insert another organization? (y)es or (n)o?");
         int choice = askForInsert();
 
         if (choice == 1) 
@@ -88,6 +93,7 @@ int main(void)
         }
 
     } while (finishAdding == false);
+
 
     displayOrgs(headPtr);
 
@@ -129,7 +135,6 @@ int askForInsert()
     int result = 0;
 
 
-    printf("%s\n", "Do you want to insert another organization? (y)es or (n)o?");
     do
     {
         custom_fgets(inputStr, SIZE, stdin);
@@ -195,13 +200,32 @@ void setUpOrganization(Organization** head)
         printf("%s", "Enter goal amount:");
         getValidDouble(&(newOrg->goal));
 
-        printf("%s\n", "Enter email address:");
-        custom_fgets(newOrg->email, SIZE, stdin);
+        int validEmailQuestion = 0;
 
-        printf("%s\n", "Enter password:");
-        custom_fgets(newOrg->password, SIZE, stdin);
+        do 
+        {
+            printf("%s\n", "Enter email address:");
+            custom_fgets(newOrg->email, SIZE, stdin);
 
-        createUrl(newOrg->organizationName);
+            if (isValidEmail(newOrg->email) == true)
+            {
+                printf("%s%s%s\n", "Is [",newOrg->email ,"] a valid email? (y)es or (n)o?");
+                validEmailQuestion = askForInsert();
+            }
+
+        } while (validEmailQuestion == 0);
+
+        int validPassQuestion = 0;
+
+        do
+        {
+            printf("%s\n", "Enter password:");
+            custom_fgets(newOrg->password, SIZE, stdin);
+
+        } while (isValidPass(newOrg->password, PASSWORD_MINIMUM) != true);
+
+
+        createUrl(newOrg);
         displayOrganizationUrl(*newOrg);
 
         addOrgToList(&(*head), newOrg);
@@ -213,7 +237,7 @@ void setUpOrganization(Organization** head)
 
 }//------------------------------------end setUpOrganization-----------------------------------------
 
-void getValidDouble(double* validDouble)
+bool getValidDouble(double* validDouble)
 {
     //the end pointer will store the last char in the string
     //errno set to 0 but will change if error is encountered
@@ -256,6 +280,8 @@ void getValidDouble(double* validDouble)
         }
      
     } while (gotValid != true);
+
+    return gotValid;
 }//------------------------------------end getValidDouble--------------------------------
 
 int compareStrings(const char* str1, const char* str2) {
@@ -361,16 +387,16 @@ char* removeSpaces(char* name, const char* organizationName)
 
 //uses the organization name and the url member to store the URL
 //will call the remove spaces method and use strcat to put the prefix and suffix of the URL
-void createUrl(char* organizationUrl)
+void createUrl(Organization * org)
 {
     //will store the return of remove spaces
     char nameWithNoSpaces[SIZE] = "";
-    strcpy(organizationUrl, urlFirstPart);
+    strcpy(org->organizationUrl, urlFirstPart);
 
-    removeSpaces(nameWithNoSpaces, organizationUrl);
+    removeSpaces(nameWithNoSpaces, org->organizationName);
 
-    strcat((organizationUrl), nameWithNoSpaces);
-    strcat(organizationUrl, urlSecondPart);
+    strcat(org->organizationUrl, nameWithNoSpaces);
+    strcat(org->organizationUrl, urlSecondPart);
 
 }//------------------------------------end createUrl-----------------------------------------
 
@@ -384,4 +410,112 @@ void displayOrganizationUrl(const Organization org)
 
     printf("%s\n\n", org.organizationUrl);
 
+}
+
+bool isValidEmail(const char* email) 
+{
+    bool gotValidEmail = false;
+    size_t length = strlen(email);
+    int numOfAts = 0;
+    int numOfPer = 0;
+    int numOfSpaces = 0;
+    int atIndex = 0;
+    int dotIndex = 0;
+
+    for (int i = 0; i < length; i++) 
+    {
+        if (email[i]=='@')
+        {
+            atIndex = i;
+            numOfAts++;
+        }
+        else if (email[i] == '.')
+        {
+            dotIndex = i;
+            numOfPer++;
+        }
+        else if(email[i]==' ')
+        {
+            numOfSpaces++;
+        }
+    }
+
+    if (numOfSpaces == 0)
+    {
+        if (atIndex != 0 && numOfAts == 1)
+        {
+            if (dotIndex > atIndex + 1 && numOfPer == 1)
+            {
+                int count = 0;
+                while (email[dotIndex + 1] != '\0')
+                {
+                    count++;
+                    dotIndex++;
+                }
+                if (count == 3)
+                {
+                    gotValidEmail = true;
+                }
+                else
+                {
+                    puts("Incorrect 3 letter extension");
+                }
+            }
+            else
+            {
+                puts("Wrong formatting of . symbol");
+            }
+        }
+        else
+        {
+            puts("Wrong formatting of @ symbol");
+        }
+    }
+    else 
+    {
+        puts("No spaces allowed in email");
+    }
+    return gotValidEmail;
+}
+
+
+bool isValidPass(const char* pass, int minimum)
+{
+    bool gotValidPass = false;
+    size_t length = strlen(pass);
+    int numOfUpper = 0;
+    int numOfLower = 0;
+    int numOfSpaces = 0;
+    int numOfDigits = 0;
+
+
+    for (int i = 0; i < length; i++)
+    {
+        if (pass[i] == ' ')
+        {
+            numOfSpaces++;
+        }
+        else if (isupper(pass[i]))
+        {
+            numOfUpper++;
+        }
+        else if (islower(pass[i]))
+        {
+            numOfLower++;
+        }
+        else if (isdigit(pass[i]))
+        {
+            numOfDigits++;
+        }
+    }
+
+    if (length>=minimum && numOfSpaces == 0 && numOfUpper>0 && numOfLower>0 && numOfDigits>0)
+    {
+        gotValidPass = true;
+    }
+    else
+    {
+        puts("Incorrect format. Password must contain at least 1 capital, 1 lower cased letter, 1 number, and no spaces");
+    }
+    return gotValidPass;
 }
