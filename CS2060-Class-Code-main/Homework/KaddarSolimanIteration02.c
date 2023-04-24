@@ -71,7 +71,7 @@ Organization* getOrgbyName(Organization*, char*);
 void getValidZip(size_t, double);
 unsigned int getDonation(Organization*, double*);
 void getDonorName();
-void removeRemainingPets(Organization**);
+void removeRemainingOrgs(Organization**);
 void askForReceipt(const Organization*, double);
 bool compareEmail(const char*);
 bool comparePass(const char*);
@@ -80,15 +80,19 @@ void fundraiserSummary(Organization*);
 int main(void)
 {
 
-
-    printf("%s\n", "---------------------------------------------------------");
+    printf("%s\n",  "---------------------------------------------------------");
     printf("%s\n", "              Set Up Fundraiser");
-    printf("%s\n\n", "---------------------------------------------------------");
+    printf("%s\n\n","---------------------------------------------------------");
 
+    //declare the head pointer and mandatory setup of first organization
+    //keep track of head pointer to manipulate linked list
     Organization* headPtr = NULL;
     setUpOrganization(&headPtr);
     bool finishAdding = false;
 
+    //loop this until the user does not want to add any more organizations
+    //basically initializing the whole linked list.
+    //Set up mode::
     do 
     {
 
@@ -116,6 +120,11 @@ int main(void)
 
     do 
     {
+        //display the organizations that the user can choose from along with their total donations and goal
+        //After the user enters the name we will use the getOrgByName function to search for that organization
+        //ignoring case
+        //Check if the returned value is null meaning the organization name is not valid and repeat the question
+
         displayOrgs(headPtr);
 
         char inputOrgName[SIZE] = "";
@@ -150,6 +159,9 @@ int main(void)
                 printf("%s\n", "                    Report mode");
                 printf("%s\n\n", "---------------------------------------------------------");
 
+                //check email and password of that specific organization to quit the program
+                //if email or password are incorrect then repeat the prompt to ask for organization to donate
+                //if they are correct break out of the loop
                 if (compareEmail(chosenOrg->email))
                 {
                     //If the password is verified 
@@ -180,8 +192,10 @@ int main(void)
     
     } while (!finishDonating);
 
+    //When admin quits. free all organizations and display summary on console and file
+
     fundraiserSummary(headPtr);
-    removeRemainingPets(&headPtr);
+    removeRemainingOrgs(&headPtr);
     return 0;
 }
 
@@ -262,6 +276,9 @@ int askForInsert()
 //no return the paramter is just the organization passed by reference using a pointer
 void setUpOrganization(Organization** head)
 {
+
+    //Allocate memory for a new organization 
+    //check if the memory got allocated and if it did then initialize data members
     Organization* newOrg = malloc(sizeof(Organization));
 
     if (newOrg != NULL)
@@ -826,7 +843,7 @@ void getDonorName()
     custom_fgets(donorLastName, SIZE, stdin);
 }
 
-void removeRemainingPets(Organization** headPtr)
+void removeRemainingOrgs(Organization** headPtr)
 {
     Organization* currentPtr = *headPtr;
     Organization* nextNodePtr = NULL;
