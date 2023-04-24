@@ -66,6 +66,8 @@ void displayOrganizationUrl(const Organization);
 bool isValidEmail(const char*);
 bool isValidPass(const char*, int);
 void createReceiptFile(Organization*);
+void displayFunds(const Organization*);
+Organization* getOrgbyName(Organization*, char*);
 
 
 int main(void)
@@ -98,8 +100,37 @@ int main(void)
     } while (finishAdding == false);
 
 
-    displayOrgs(headPtr);
+    printf("%s\n", "---------------------------------------------------------");
+    printf("%s\n", "                    Donate!");
+    printf("%s\n\n", "---------------------------------------------------------");
 
+    //boolean flag will only be set as true when the admin is verified 
+    bool finishDonating = false;
+
+    do 
+    {
+        displayOrgs(headPtr);
+
+        char inputOrgName[] = "";
+        custom_fgets(inputOrgName, SIZE, stdin);
+
+        Organization* chosenOrg = getOrgbyName(headPtr, inputOrgName);
+
+        if (chosenOrg != NULL) 
+        {
+            displayFunds(chosenOrg);
+            puts("--------------------------------------------------------------\n");
+            puts("Enter fundraiser name: ");
+
+
+        }
+        else 
+        {
+            puts("No organizations found of that name");
+        }
+
+    
+    } while (!finishDonating);
 
     return 0;
 }
@@ -231,7 +262,7 @@ void setUpOrganization(Organization** head)
         createUrl(newOrg);
         displayOrganizationUrl(*newOrg);
 
-        createReceiptFile(newOrg->organizationName, newOrg->filePath);
+        createReceiptFile(newOrg);
 
         addOrgToList(&(*head), newOrg);
     }
@@ -550,7 +581,60 @@ void createReceiptFile(Organization* org)
 
         puts("wrote in file");
         fprintf(orgfPtr, "%s%s\n", org->organizationName, " receipt file.");
-    
+        fclose(orgfPtr);
     }
 
 }
+
+Organization* getOrgbyName(Organization* headPtr, char* name)
+{
+    Organization* orgFound = NULL;
+
+    if (headPtr == NULL)
+    {
+        puts("No orgs in list");
+    }
+    else
+    {
+        Organization* currentOrg = NULL;
+        currentOrg = headPtr;
+        while (currentOrg != NULL)
+        {
+            if (compareStrings(currentOrg->organizationName, name)==0) 
+            {
+                orgFound = currentOrg;
+                currentOrg = currentOrg->nextOrgPtr;
+            }
+            else 
+            {
+                currentOrg = currentOrg->nextOrgPtr;
+            }
+        }
+
+    }
+
+    return orgFound;
+}
+
+//simple display function
+//calculates the percentage towards the goal using amount raised and goal in the organization
+void displayFunds(const Organization* org)
+{
+    printf("%s\n\n", org->organizationUrl);
+    printf("%s\n", "MAKE A DIFFERENCE BY YOUR DONATION");
+
+    printf("%s%s\n", "Organization: ", org->organizationName);
+    printf("%s%s\n\n", "Purpose: ", org->purpose);
+
+    printf("%s%.2lf \n", "We currently have raised: ", org->amountRaised);
+
+    if (org->amountRaised >= org->goal)
+    {
+        printf("%s\n\n", "We have reached our goal but could still use the donation");
+    }
+    else
+    {
+        double percentage = (org->amountRaised / org->goal) * 100;
+        printf("%s%.2lf%s%.2lf \n\n", "We are ", percentage, " percent towards our goal of ", org->goal);
+    }
+}//------------------------------------end displayFunds-----------------------------------------

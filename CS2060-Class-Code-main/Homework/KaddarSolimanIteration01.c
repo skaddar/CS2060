@@ -554,3 +554,4 @@ void getDonorName()
     printf("%s\n", "Last name:");
     custom_fgets(donorLastName, SIZE, stdin);
 }
+
