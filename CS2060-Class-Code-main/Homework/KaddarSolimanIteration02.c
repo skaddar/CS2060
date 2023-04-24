@@ -30,6 +30,7 @@
 #define PASSWORD_MINIMUM 7
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
+const char fundraisersPath[] = "C:\\fundraisers\\";
 const char fileReceipt[] = "-receipt.txt";
 
 //structure for the fundraisers 
@@ -40,6 +41,7 @@ typedef struct organization {
     char purpose[80];
     char email[80];
     char password[80];
+    char filePath[200];
     char organizationUrl[URL_PARTS_LENGTH + SIZE];
     double goal;
     double amountRaised;
@@ -63,6 +65,7 @@ char* removeSpaces(char*, const char*);
 void displayOrganizationUrl(const Organization);
 bool isValidEmail(const char*);
 bool isValidPass(const char*, int);
+void createReceiptFile(Organization*);
 
 
 int main(void)
@@ -228,6 +231,8 @@ void setUpOrganization(Organization** head)
         createUrl(newOrg);
         displayOrganizationUrl(*newOrg);
 
+        createReceiptFile(newOrg->organizationName, newOrg->filePath);
+
         addOrgToList(&(*head), newOrg);
     }
     else
@@ -375,7 +380,7 @@ char* removeSpaces(char* name, const char* organizationName)
     //get the name of the organization and store the string in name
     //Then loop through all of the characters in the string and replace any spaces with a dash
     strcpy(name, organizationName);
-    for (int i = 0; i < strlen(organizationName); i++)
+    for (int i = 0; i < strlen(name); i++)
     {
         if (name[i] == ' ')
         {
@@ -516,6 +521,36 @@ bool isValidPass(const char* pass, int minimum)
     else
     {
         puts("Incorrect format. Password must contain at least 1 capital, 1 lower cased letter, 1 number, and no spaces");
+        printf("%s%d%s\n","Password must also be at least ", minimum, " characters long");
     }
     return gotValidPass;
+}
+
+void createReceiptFile(Organization* org) 
+{
+    char fileName[SIZE] = "";
+    char filePath[SIZE] = "";
+
+    removeSpaces(fileName, org->organizationName);
+    strcat(fileName, fileReceipt);
+
+    strcpy(filePath, fundraisersPath);
+    strcat(filePath, fileName);
+
+    strcpy(org->filePath, filePath);
+
+    FILE* orgfPtr;
+
+    puts("");
+    // fopen opens file. Exit program if unable to create file 
+    if ((orgfPtr = fopen(filePath, "w")) == NULL) {
+        puts("File could not be opened");
+    }
+    else {
+
+        puts("wrote in file");
+        fprintf(orgfPtr, "%s%s\n", org->organizationName, " receipt file.");
+    
+    }
+
 }
