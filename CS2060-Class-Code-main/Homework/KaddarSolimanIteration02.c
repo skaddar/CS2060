@@ -68,7 +68,14 @@ bool isValidPass(const char*, int);
 void createReceiptFile(Organization*);
 void displayFunds(const Organization*);
 Organization* getOrgbyName(Organization*, char*);
-
+void getValidZip(size_t, double);
+unsigned int getDonation(Organization*, double*);
+void getDonorName();
+void removeRemainingPets(Organization**);
+void askForReceipt(const Organization*, double);
+bool compareEmail(const char*);
+bool comparePass(const char*);
+void fundraiserSummary(Organization*);
 
 int main(void)
 {
@@ -111,7 +118,7 @@ int main(void)
     {
         displayOrgs(headPtr);
 
-        char inputOrgName[] = "";
+        char inputOrgName[SIZE] = "";
         custom_fgets(inputOrgName, SIZE, stdin);
 
         Organization* chosenOrg = getOrgbyName(headPtr, inputOrgName);
@@ -120,8 +127,49 @@ int main(void)
         {
             displayFunds(chosenOrg);
             puts("--------------------------------------------------------------\n");
-            puts("Enter fundraiser name: ");
 
+            printf("%s\n", "Enter Donation:");
+
+            //donated amount will be passed and updated in the getDonation function
+            //declared in main because it will be used for the receipt 
+            //if not admin pin
+            //getDonation will return 0 if the admin pin was not entered
+            //if the admin pin was not entered. get the donor name and ask for receipt and then loop again
+
+            double donatedAmount = 0;
+            if (getDonation(chosenOrg, &donatedAmount) == 0)
+            {
+                getDonorName();
+                getValidZip(ZIPCODE_LENGTH, donatedAmount);
+                askForReceipt(chosenOrg, donatedAmount);
+
+            }
+            else 
+            {
+                printf("\n%s\n", "---------------------------------------------------------");
+                printf("%s\n", "                    Report mode");
+                printf("%s\n\n", "---------------------------------------------------------");
+
+                if (compareEmail(chosenOrg->email))
+                {
+                    //If the password is verified 
+                    if (comparePass(chosenOrg->password))
+                    {
+                        //Summarize fundraiser data and exit loop 
+                        finishDonating = true;
+                        puts("\nThank you. printing summary and exiting program");
+
+                    }
+                    else
+                    {
+                        printf("%s", "Wrong Password. Going back to donations mode.\n");
+                    }
+                }
+                else
+                {
+                    printf("%s", "Wrong Email. Going back to donations mode.\n");
+                }
+            }
 
         }
         else 
@@ -132,6 +180,8 @@ int main(void)
     
     } while (!finishDonating);
 
+    fundraiserSummary(headPtr);
+    removeRemainingPets(&headPtr);
     return 0;
 }
 
@@ -579,7 +629,6 @@ void createReceiptFile(Organization* org)
     }
     else {
 
-        puts("wrote in file");
         fprintf(orgfPtr, "%s%s\n", org->organizationName, " receipt file.");
         fclose(orgfPtr);
     }
@@ -638,3 +687,323 @@ void displayFunds(const Organization* org)
         printf("%s%.2lf%s%.2lf \n\n", "We are ", percentage, " percent towards our goal of ", org->goal);
     }
 }//------------------------------------end displayFunds-----------------------------------------
+
+
+//gets donations and checks for admin pin
+//basically the same as getValidDouble but uses another check for the admin pin at the start
+//returns a 0 if admin pin is not entered and 1 if admin pin is entered
+unsigned int getDonation(Organization* org, double* validDouble)
+{
+    char* end;
+    errno = 0;
+    bool gotValid = false;
+    unsigned int adminInput = 0;
+    double doubleTest = 0;
+    char inputStr[SIZE];
+
+    do
+    {
+        //check if the input is one character long and it is not a digit and that char is the admin Pin 
+        custom_fgets(inputStr, SIZE, stdin);
+        if (strlen(inputStr) <= 1 && isdigit(inputStr[0]) == 0)
+        {
+            if (toupper(inputStr[0]) == ADMIN_PIN)
+            {
+                gotValid = true;
+                adminInput = 1;
+            }
+        }
+
+        //Same as getValidDouble
+        if (gotValid == false)
+        {
+            double doubleTest = strtod(inputStr, &end);
+
+            //first Make sure the end has moved meaning it read some values
+            //then check that end is null because that means it read all values
+            //if it passes those tests then update the double and exit loop
+            if (end != inputStr) {
+
+                if ('\0' == *end) {
+
+                    if (doubleTest > 0)
+                    {
+                        *validDouble = doubleTest;
+                        gotValid = true;
+                        double processingFee = doubleTest * CARD_PROCESS_FEE;
+                        org->amountRaised = org->amountRaised + (doubleTest - processingFee);
+                        org->creditCardFees = org->creditCardFees + processingFee;
+                        org->numOfDonors = org->numOfDonors + 1;
+                        adminInput = 0;
+                    }
+                    else {
+                        puts("number must be greater than 0");
+                    }
+                }
+                else {
+                    printf("%s: extra characters at end of input: %s\n", inputStr, end);
+                }
+            }
+            else {
+                printf("%s: not a decimal number\n", inputStr);
+            }
+   
+        }
+
+    } while (gotValid != true);
+
+    return adminInput;
+}//------------------------------------end getDonation-----------------------------------------
+
+void getValidZip(size_t zipcodeSize, double donatedAmount)
+{
+    bool flag = false;
+    char zipcode[SIZE] = "";
+    do
+    {
+        printf("%s\n", "Enter a valid Zipcode: ");
+        custom_fgets(zipcode, SIZE, stdin);
+
+        //checks if the first character is a digit that is not 0
+        if (zipcode[0] != '0' && isdigit(zipcode[0]))
+        {
+            //Checks if the length after removing the newline character is equal to a zip length
+            if (strlen(zipcode) == ZIPCODE_LENGTH)
+            {
+                //Loops until it counts 5 digits or encounters a non digit 
+                unsigned int counter = 0;
+                bool isDigit = true;
+                while (counter <= 5 && isDigit)
+                {
+                    if (isdigit(zipcode[counter]))
+                    {
+                        counter++;
+                    }
+                    else
+                    {
+                        isDigit = false;
+                    }
+                }
+                //Checks if the last loop repeated 5 times meaning it counted 5 digits
+                if (counter == 5)
+                {
+                    flag = true;
+                }
+                else
+                {
+                    printf("%s\n", "zipcode must only contain valid integer values");
+                }
+            }
+            else
+            {
+                printf("%s\n", "Zipcode can only be 5 characters long");
+            }
+        }
+        else
+        {
+            printf("%s\n", "First Character must be a number greater than 0");
+        }
+    } while (flag == false);
+
+    //calculates processing fee and prints out the thanks for donation
+
+    double processingFee = donatedAmount * CARD_PROCESS_FEE;
+    printf("%s%.2lf%s\n", "Thank you for your donation.There is a ", CARD_PROCESS_FEE * 100,
+        " % credit card processing");
+    printf("%s%.2lf%s%.2lf%s\n", "fee of [$ ", processingFee, "] . [$ ", donatedAmount - processingFee
+        , "] will be donated.");
+
+}//------------------------------------end getValidZip-----------------------------------------
+
+//get donor names no verification necessary
+void getDonorName()
+{
+    char donorFirstName[SIZE] = "";
+    char donorLastName[SIZE] = "";
+    printf("%s\n", "First name:");
+    custom_fgets(donorFirstName, SIZE, stdin);
+    printf("%s\n", "Last name:");
+    custom_fgets(donorLastName, SIZE, stdin);
+}
+
+void removeRemainingPets(Organization** headPtr)
+{
+    Organization* currentPtr = *headPtr;
+    Organization* nextNodePtr = NULL;
+
+    while (currentPtr != NULL)
+    {
+        nextNodePtr = currentPtr->nextOrgPtr;
+        free(currentPtr);
+        currentPtr = nextNodePtr;
+    }
+
+    *headPtr = NULL;
+
+}
+
+void askForReceipt(const Organization* org, double amountDonated)
+{
+
+    printf("%s\n", "Do you want a receipt? (y)es or (n)o?");
+    int choice = askForInsert();
+
+    double processingFee = amountDonated * CARD_PROCESS_FEE;
+    double processedDonatedAmt = amountDonated - processingFee;
+
+    //if Y is entered print receipt
+    //if N is entered exit function
+    if (choice==1) {
+
+        time_t donationDate;
+        time(&donationDate);
+
+        printf("%s\n", "Receipt:");
+        printf("%s%s\n", "Organization: ", org->organizationName);
+        printf("%s%.2lf\n", "Donation Amount:", processedDonatedAmt);
+        printf("%s%s \n", "Donation Date : ", ctime(&donationDate));
+        printf("%s\n\n", "---------------------------------------------------------");
+
+        FILE* orgfPtr;
+
+        puts("");
+        // fopen opens file. Exit program if unable to create file 
+        if ((orgfPtr = fopen(org->filePath, "a")) == NULL) {
+            puts("File could not be opened");
+        }
+        else {
+
+            fprintf(orgfPtr, "\n%s\n", "Receipt:");
+            fprintf(orgfPtr, "%s%s\n", "Organization: ", org->organizationName);
+            fprintf(orgfPtr, "%s%.2lf\n", "Donation Amount:", processedDonatedAmt);
+            fprintf(orgfPtr, "%s%s \n", "Donation Date : ", ctime(&donationDate));
+            fprintf(orgfPtr, "%s\n\n", "---------------------------------------------------------");
+            fclose(orgfPtr);
+        }
+
+
+    }
+    if (choice == 0)
+    {
+        printf("%s\n\n", "---------------------------------------------------------");
+
+    }
+
+}//------------------------------------end askForReceipt-----------------------------------------
+
+//function that gives admin two tries to enter a valid email that matches the organization email
+//returns a true if email is verified and false if both tries are used up
+bool compareEmail(const char* email)
+{
+    unsigned int counter = 0;
+    bool validStringEntered = false;
+    char input[SIZE] = "";
+
+    //loop while they have not used both attempts and valid email has not been entered
+    while (counter < 2 && validStringEntered == false)
+    {
+        printf("%s\n", "Enter email: ");
+        custom_fgets(input, SIZE, stdin);
+
+        //if email is valid set boolean flag and exit loop
+        if (compareStrings(input, email) == 0)
+        {
+            validStringEntered = true;
+        }
+        //if email is incorrect display attempts left add to counter and loop again
+        else
+        {
+            printf("%s%d%s\n", "Incorrect email. ", 1 - counter, " attempts left");
+            counter++;
+        }
+    }
+    //return boolean
+    return validStringEntered;
+}//------------------------------------end compareEmail-----------------------------------------
+
+//this function is the exact same as compare email except it checks for password. could have made one function
+//but printing is different
+bool comparePass(const char* pass)
+{
+    unsigned int counter = 0;
+    bool validStringEntered = false;
+    char input[SIZE] = "";
+
+    while (counter < 2 && validStringEntered == false)
+    {
+        printf("%s\n", "Enter Password: ");
+        custom_fgets(input, SIZE, stdin);
+
+        if (strcmp(input, pass) == 0)
+        {
+            validStringEntered = true;
+        }
+        else
+        {
+            printf("%s%d%s\n", "Incorrect Password. ", 2 - counter, " attempts left");
+            counter++;
+        }
+    }
+    if (counter == 2) {
+        printf("%s", "Going back to donations mode.\n");
+    }
+
+    return validStringEntered;
+}//------------------------------------end comparePass-----------------------------------------
+
+void fundraiserSummary(Organization* headPtr)
+{
+    if (headPtr == NULL)
+    {
+        puts("No orgs in list");
+    }
+    else
+    {
+
+        puts("Displaying all fundraisers summaries:\n");
+        puts("----------------------------------------------------------------------------------\n\n");
+
+        Organization* currentOrg = headPtr;
+
+        while (currentOrg != NULL)
+        {
+            printf("\n%s%s\n", "Summary for ", currentOrg->organizationName);
+            printf("%s\n", "----------------------------------------------------------------");
+            printf("%s%d\n", "number of donors: ", currentOrg->numOfDonors);
+            printf("%s%.2lf\n", "amount raised: ", currentOrg->amountRaised);
+            printf("%s%.2lf\n", "amount raised in credit card fees: ", currentOrg->creditCardFees);
+
+            currentOrg = currentOrg->nextOrgPtr;
+        }
+
+    }
+
+    FILE* orgfPtr;
+
+    puts("");
+    // fopen opens file. Exit program if unable to create file 
+    if ((orgfPtr = fopen("C:\\fundraisers\\orgs.txt", "w")) == NULL) {
+        puts("File could not be opened");
+    }
+    else {
+
+        fprintf(orgfPtr, "%s", "Displaying all fundraisers summaries:\n");
+        fprintf(orgfPtr, "%s", "----------------------------------------------------------------------------------\n");
+
+        Organization* currentOrg = headPtr;
+
+        while (currentOrg != NULL)
+        {
+            fprintf(orgfPtr, "\n%s%s\n", "Summary for ", currentOrg->organizationName);
+            fprintf(orgfPtr, "%s\n", "----------------------------------------------------------------");
+            fprintf(orgfPtr, "%s%d\n", "number of donors: ", currentOrg->numOfDonors);
+            fprintf(orgfPtr, "%s%.2lf\n", "amount raised: ", currentOrg->amountRaised);
+            fprintf(orgfPtr, "%s%.2lf\n", "amount raised in credit card fees: ", currentOrg->creditCardFees);
+
+            currentOrg = currentOrg->nextOrgPtr;
+        }
+
+        fclose(orgfPtr);
+    }
+
+}
