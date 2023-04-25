@@ -4,11 +4,11 @@
 // Iteration 02 Implementation
 // Due:25 April 2023
 // 
-// Description:
-// 
-// 
-// 
-// 
+// Description: Implement iteration 01 with the fundraisers but allow 
+// for more than one organization to be added and they will all be stored
+// in a linked list that will be sorted  alphabetically. Then write all 
+// receipts for the organiaztions in seperate files and when the program
+// is ready to quit write the organization summaries in a file all together
 //
 
 
@@ -31,6 +31,7 @@
 const char urlFirstPart[] = "https:donate.com/";
 const char urlSecondPart[] = "?form=popup#";
 const char fundraisersPath[] = "C:\\fundraisers\\";
+const char fundraisersSummaryFile[] = "org.txt";
 const char fileReceipt[] = "-receipt.txt";
 
 //structure for the fundraisers 
@@ -301,6 +302,7 @@ void setUpOrganization(Organization** head)
         printf("%s", "Enter goal amount:");
         getValidDouble(&(newOrg->goal));
 
+        //Ask for email and if it is a valid email then confirm with the user
         int validEmailQuestion = 0;
 
         do 
@@ -316,6 +318,8 @@ void setUpOrganization(Organization** head)
 
         } while (validEmailQuestion == 0);
 
+        //Ask for password and validate. if incorrect then repeat question
+
         int validPassQuestion = 0;
 
         do
@@ -325,6 +329,9 @@ void setUpOrganization(Organization** head)
 
         } while (isValidPass(newOrg->password, PASSWORD_MINIMUM) != true);
 
+        //Create a url for the fundraiser as well as a receipt file that bwill be stored
+        //in the fundraisers file
+        //Then at the end add the organization to the list
 
         createUrl(newOrg);
         displayOrganizationUrl(*newOrg);
@@ -387,6 +394,9 @@ bool getValidDouble(double* validDouble)
     return gotValid;
 }//------------------------------------end getValidDouble--------------------------------
 
+//function to compare two strings ignoring the case
+//will be passed two strings and return an integer based on which one
+//comes first in the alphabet
 int compareStrings(const char* str1, const char* str2) {
 
     int result = 0;
@@ -423,20 +433,23 @@ int compareStrings(const char* str1, const char* str2) {
     return result;
 }//String compare method -----------------------------------------------------------------------------
 
-
+//function to add an organization to the linked list. it will be passed the
+//head pointer as a double pointer and a pointer to the organization that will be added
+//no return
 void addOrgToList(Organization** head, Organization* orgToAdd) 
 {
     Organization* previousOrgPtr = NULL;
     Organization* currentOrgPtr = *head;
 
-
-        while (currentOrgPtr != NULL && compareStrings(currentOrgPtr->organizationName, orgToAdd->organizationName) == 1)
+    //repeat until found the correct spot for orgToAdd then add it using previous and current
+        while (currentOrgPtr != NULL && compareStrings(currentOrgPtr->organizationName, orgToAdd->organizationName) == -1)
         {
             previousOrgPtr = currentOrgPtr;
 
             currentOrgPtr = currentOrgPtr->nextOrgPtr;
         }
 
+        //This means there is no head 
         if (previousOrgPtr == NULL)
         {
             *head = orgToAdd;
@@ -515,6 +528,10 @@ void displayOrganizationUrl(const Organization org)
 
 }
 
+//Verify the email. will be passed the email in the organization as a constant
+//because it will not be changed
+//returns true if valid email and false if not in correct format
+
 bool isValidEmail(const char* email) 
 {
     bool gotValidEmail = false;
@@ -525,6 +542,8 @@ bool isValidEmail(const char* email)
     int atIndex = 0;
     int dotIndex = 0;
 
+    //count how many @s and dots there is and spaces because emails
+    //should not contain spaces
     for (int i = 0; i < length; i++) 
     {
         if (email[i]=='@')
@@ -549,6 +568,11 @@ bool isValidEmail(const char* email)
         {
             if (dotIndex > atIndex + 1 && numOfPer == 1)
             {
+
+                //This will make sure of the last 3 character extension
+                //making sure that before the null character and after the dot there is 
+                //only 3 characters
+
                 int count = 0;
                 while (email[dotIndex + 1] != '\0')
                 {
@@ -581,7 +605,9 @@ bool isValidEmail(const char* email)
     return gotValidEmail;
 }
 
-
+//Verify the pass. will be passed the pass in the organization as a constant
+//because it will not be changed
+//returns true if valid pass and false if not in correct format
 bool isValidPass(const char* pass, int minimum)
 {
     bool gotValidPass = false;
@@ -591,7 +617,9 @@ bool isValidPass(const char* pass, int minimum)
     int numOfSpaces = 0;
     int numOfDigits = 0;
 
-
+    //count how many capitals, upper cased letters, lower cased letters
+    //and numbers there is in the string there should be more than 0 of each
+    //Also no spaces
     for (int i = 0; i < length; i++)
     {
         if (pass[i] == ' ')
@@ -624,10 +652,14 @@ bool isValidPass(const char* pass, int minimum)
     return gotValidPass;
 }
 
+//function to create a recepit file for the organization
+//no return only passed the organization to write the members to a file
 void createReceiptFile(Organization* org) 
 {
     char fileName[SIZE] = "";
     char filePath[SIZE] = "";
+
+    //replace spaces with dashes for the org name
 
     removeSpaces(fileName, org->organizationName);
     strcat(fileName, fileReceipt);
@@ -652,9 +684,16 @@ void createReceiptFile(Organization* org)
 
 }
 
+//find an organization by the name and return the address of that organization
+//Will be passed the headptr to find the org in the list as well as the name of the org
 Organization* getOrgbyName(Organization* headPtr, char* name)
 {
     Organization* orgFound = NULL;
+
+    //if head is empty there are no organizations in the list
+    //if it is not then use a new node of current pointer to traverse the list and compare
+    //each organizations name with the inputted name and if they match then update the organization
+    //found with the address of that organization
 
     if (headPtr == NULL)
     {
@@ -843,6 +882,8 @@ void getDonorName()
     custom_fgets(donorLastName, SIZE, stdin);
 }
 
+//traverse the list and free each organization and at the end 
+//free the head pointer
 void removeRemainingOrgs(Organization** headPtr)
 {
     Organization* currentPtr = *headPtr;
@@ -859,6 +900,9 @@ void removeRemainingOrgs(Organization** headPtr)
 
 }
 
+//function to ask for recepit from donor and if they want a recepit add it to the
+//organization receipt file
+//no return.
 void askForReceipt(const Organization* org, double amountDonated)
 {
 
@@ -997,9 +1041,13 @@ void fundraiserSummary(Organization* headPtr)
 
     FILE* orgfPtr;
 
+    char summaryFile[SIZE] = "";
+    strcpy(summaryFile, fundraisersPath);
+    strcat(summaryFile, fundraisersSummaryFile);
+
     puts("");
     // fopen opens file. Exit program if unable to create file 
-    if ((orgfPtr = fopen("C:\\fundraisers\\orgs.txt", "w")) == NULL) {
+    if ((orgfPtr = fopen(summaryFile, "w")) == NULL) {
         puts("File could not be opened");
     }
     else {
